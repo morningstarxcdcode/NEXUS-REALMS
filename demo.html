@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Realms - Humanized Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: #ecf0f1;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .story-section {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            margin: 20px 0;
+            border-radius: 15px;
+            border-left: 4px solid #3498db;
+            backdrop-filter: blur(10px);
+        }
+
+        .character-thought {
+            font-style: italic;
+            color: #bdc3c7;
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(52, 152, 219, 0.1);
+            border-radius: 8px;
+            border-left: 3px solid #3498db;
+        }
+
+        .choice-container {
+            margin: 25px 0;
+        }
+
+        .choice-button {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 20px;
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .choice-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+        }
+
+        .choice-consequence {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-top: 8px;
+        }
+
+        .emotional-state {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            min-width: 200px;
+        }
+
+        .emotion-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            margin: 5px 0;
+            overflow: hidden;
+        }
+
+        .emotion-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e74c3c, #f39c12, #27ae60);
+            transition: width 0.5s ease;
+        }
+
+        .reflection-box {
+            background: rgba(46, 204, 113, 0.1);
+            border: 1px solid #2ecc71;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+
+        .npc-dialogue {
+            background: rgba(155, 89, 182, 0.1);
+            border-left: 4px solid #9b59b6;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+
+        .body-language {
+            font-style: italic;
+            color: #95a5a6;
+            font-size: 14px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #3498db;
+            text-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
+        }
+
+        h2 {
+            color: #e67e22;
+            margin-bottom: 15px;
+        }
+
+        .demo-intro {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 18px;
+            color: #bdc3c7;
+        }
+
+        .growth-indicator {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎭 Nexus Realms: Humanized Demo</h1>
+        <div class="demo-intro">
+            Experience a game that understands human emotions, relationships, and growth.
+            <br>Every choice shapes not just the story, but who you become.
+        </div>
+
+        <!-- Emotional State Display -->
+        <div class="emotional-state">
+            <strong>Your Emotional State</strong>
+            <div>Stress: <span id="stressLevel">20</span>%</div>
+            <div class="emotion-bar"><div class="emotion-fill" id="stressFill" style="width: 20%"></div></div>
+            
+            <div>Confidence: <span id="confidenceLevel">50</span>%</div>
+            <div class="emotion-bar"><div class="emotion-fill" id="confidenceFill" style="width: 50%"></div></div>
+            
+            <div>Empathy: <span id="empathyLevel">60</span>%</div>
+            <div class="emotion-bar"><div class="emotion-fill" id="empathyFill" style="width: 60%"></div></div>
+        </div>
+
+        <!-- Growth Tracker -->
+        <div class="growth-indicator">
+            <strong>Personal Growth</strong>
+            <div>Wisdom: <span id="wisdomGrowth">0</span></div>
+            <div>Courage: <span id="courageGrowth">0</span></div>
+            <div>Compassion: <span id="compassionGrowth">0</span></div>
+        </div>
+
+        <!-- Story Sections -->
+        <div id="story-content">
+            <!-- Opening Scene -->
+            <div class="story-section" id="opening">
+                <h2>The Awakening</h2>
+                <p>You wake up clutching a photo of someone you love. Their face is the last thing you remember from your old life. The photo is creased from your grip, and there's a tear stain on the corner.</p>
+                
+                <div class="character-thought">
+                    💭 "Who was in that photo? Why does my chest feel so tight when I look at it? And why can't I remember their name?"
+                </div>
+
+                <p>Around you, this strange realm pulses with an otherworldly energy. But all you can think about is that face in the photo - someone who mattered more than anything.</p>
+
+                <div class="choice-container">
+                    <button class="choice-button" onclick="makeChoice('remember', 'opening')">
+                        Try to remember more about the person in the photo
+                        <div class="choice-consequence">Painful but important memories might surface</div>
+                    </button>
+                    <button class="choice-button" onclick="makeChoice('focus', 'opening')">
+                        Focus on surviving in this new place
+                        <div class="choice-consequence">Practical, but the memories will haunt you</div>
+                    </button>
+                    <button class="choice-button" onclick="makeChoice('help', 'opening')">
+                        Look for others who might be lost like you
+                        <div class="choice-consequence">Find companionship but avoid your own pain</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Elena Meeting -->
+            <div class="story-section hidden" id="elena-meeting">
+                <h2>A Kindred Spirit</h2>
+                <p>You find a woman kneeling beside a wounded stranger, her hands glowing with healing light. But you notice her hands are shaking.</p>
+
+                <div class="npc-dialogue">
+                    <strong>Elena:</strong> "I... I can heal the wound, but I can't bring back what he's lost."
+                    <div class="body-language">*her voice wavers, eyes distant with old pain*</div>
+                </div>
+
+                <p>The wounded man has lost his memory, just like you. Elena's healing can mend his body, but his mind... that's beyond her power.</p>
+
+                <div class="character-thought">
+                    💭 "She's trying so hard to help, but I can see the weight she carries. We're all broken in different ways."
+                </div>
+
+                <div class="npc-dialogue">
+                    <strong>Elena:</strong> "I've seen too many people lose pieces of themselves. Sometimes I wonder if my healing just... prolongs the suffering."
+                    <div class="body-language">*looks at her hands with doubt*</div>
+                </div>
+
+                <div class="choice-container">
+                    <button class="choice-button" onclick="makeChoice('validate', 'elena')">
+                        "Your healing gives people a chance to find themselves again"
+                        <div class="choice-consequence">Boost Elena's confidence, strengthen your bond</div>
+                    </button>
+                    <button class="choice-button" onclick="makeChoice('share', 'elena')">
+                        Share your own struggles with memory loss
+                        <div class="choice-consequence">Create deeper connection through vulnerability</div>
+                    </button>
+                    <button class="choice-button" onclick="makeChoice('practical', 'elena')">
+                        "We can't save everyone, but we can try to save someone"
+                        <div class="choice-consequence">Realistic but might seem cold</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Moral Dilemma -->
+            <div class="story-section hidden" id="moral-dilemma">
+                <h2>The Crying Child</h2>
+                <p>You come across a small child crying over their mother's body. The woman has been dead for hours, but the child keeps shaking her, begging her to wake up.</p>
+
+                <div class="character-thought">
+                    💭 "God, this reminds me of... something. A loss I can't quite remember but can still feel."
+                </div>
+
+                <p>You have one healing potion left - precious and rare. The child looks up at you with desperate, hopeful eyes.</p>
+
+                <div class="npc-dialogue">
+                    <strong>Child:</strong> "Please! You can fix her, right? Everyone says heroes can fix anything!"
+                    <div class="body-language">*tugs at your sleeve with tiny, desperate hands*</div>
+                </div>
+
+                <p>Elena stands beside you, her own eyes wet with tears. She knows, as you do, that the potion won't work on someone who's been gone this long.</p>
+
+                <div class="choice-container">
+                    <button class="choice-button" onclick="makeChoice('use-potion', 'dilemma')">
+                        Use the potion anyway, knowing it won't work
+                        <div class="choice-consequence">Waste resources but show compassion for the child's hope</div>
+                    </button>
+                    <button class="choice-button" onclick="makeChoice('explain', 'dilemma')">
+                        Gently explain that some things can't be fixed
+                        <div class="choice-consequence">Harsh truth but helps the child begin to heal</div>
+                    </button>
+                    <button class="choice-button" onclick="makeChoice('comfort', 'dilemma')">
+                        Hold the child and let them cry
+                        <div class="choice-consequence">Sometimes presence is more healing than solutions</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Reflection Moment -->
+            <div class="story-section hidden" id="reflection">
+                <h2>By the Campfire</h2>
+                <p>That night, you sit by the fire with Elena. The flames dance between you, casting shifting shadows on your faces. The weight of the day's choices settles on your shoulders.</p>
+
+                <div class="reflection-box">
+                    <strong>Personal Reflection:</strong>
+                    <p id="personal-reflection">You're learning that being a hero isn't about having all the answers. It's about staying human in the face of impossible choices.</p>
+                </div>
+
+                <div class="npc-dialogue">
+                    <strong>Elena:</strong> <span id="elena-reflection">"You know what I've learned? Sometimes the bravest thing you can do is admit you don't know what you're doing."</span>
+                    <div class="body-language">*stares into the fire, voice soft but steady*</div>
+                </div>
+
+                <div class="character-thought">
+                    💭 <span id="player-thought">"Maybe that's what growing up really means - not having all the answers, but being willing to face the questions anyway."</span>
+                </div>
+
+                <button class="choice-button" onclick="showEnding()">
+                    Continue your journey...
+                </button>
+            </div>
+
+            <!-- Personalized Ending -->
+            <div class="story-section hidden" id="ending">
+                <h2>Your Journey's Meaning</h2>
+                <div id="ending-content">
+                    <!-- Will be filled by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let gameState = {
+            stress: 20,
+            confidence: 50,
+            empathy: 60,
+            wisdom: 0,
+            courage: 0,
+            compassion: 0,
+            choices: [],
+            relationships: {
+                elena: 0
+            }
+        };
+
+        // Choice handling
+        function makeChoice(choiceId, section) {
+            gameState.choices.push({ choice: choiceId, section: section });
+            
+            // Update emotional state based on choice
+            updateEmotionalState(choiceId, section);
+            
+            // Show next section
+            showNextSection(choiceId, section);
+            
+            // Update displays
+            updateEmotionalDisplay();
+            updateGrowthDisplay();
+        }
+
+        function updateEmotionalState(choiceId, section) {
+            switch(section) {
+                case 'opening':
+                    if (choiceId === 'remember') {
+                        gameState.stress += 10;
+                        gameState.wisdom += 2;
+                        gameState.courage += 1;
+                    } else if (choiceId === 'focus') {
+                        gameState.confidence += 5;
+                        gameState.courage += 2;
+                    } else if (choiceId === 'help') {
+                        gameState.empathy += 5;
+                        gameState.compassion += 2;
+                        gameState.stress += 5;
+                    }
+                    break;
+                    
+                case 'elena':
+                    if (choiceId === 'validate') {
+                        gameState.empathy += 3;
+                        gameState.compassion += 2;
+                        gameState.relationships.elena += 15;
+                    } else if (choiceId === 'share') {
+                        gameState.courage += 3;
+                        gameState.wisdom += 2;
+                        gameState.relationships.elena += 20;
+                        gameState.stress += 5;
+                    } else if (choiceId === 'practical') {
+                        gameState.wisdom += 2;
+                        gameState.relationships.elena += 5;
+                    }
+                    break;
+                    
+                case 'dilemma':
+                    if (choiceId === 'use-potion') {
+                        gameState.compassion += 3;
+                        gameState.stress += 10;
+                        gameState.wisdom += 1;
+                    } else if (choiceId === 'explain') {
+                        gameState.wisdom += 3;
+                        gameState.courage += 2;
+                        gameState.stress += 15;
+                    } else if (choiceId === 'comfort') {
+                        gameState.empathy += 4;
+                        gameState.compassion += 3;
+                        gameState.wisdom += 2;
+                    }
+                    break;
+            }
+            
+            // Keep values in reasonable ranges
+            gameState.stress = Math.min(100, Math.max(0, gameState.stress));
+            gameState.confidence = Math.min(100, Math.max(0, gameState.confidence));
+            gameState.empathy = Math.min(100, Math.max(0, gameState.empathy));
+        }
+
+        function showNextSection(choiceId, section) {
+            // Hide current section
+            document.getElementById(section).classList.add('hidden');
+            
+            // Show next section based on choice
+            if (section === 'opening') {
+                document.getElementById('elena-meeting').classList.remove('hidden');
+            } else if (section === 'elena') {
+                document.getElementById('moral-dilemma').classList.remove('hidden');
+            } else if (section === 'dilemma') {
+                updateReflectionContent();
+                document.getElementById('reflection').classList.remove('hidden');
+            }
+        }
+
+        function updateReflectionContent() {
+            const lastChoice = gameState.choices[gameState.choices.length - 1];
+            const reflections = {
+                'use-potion': "You chose compassion over practicality. Sometimes the gesture matters more than the outcome.",
+                'explain': "You chose difficult truth over comfortable lies. Growth often comes from facing hard realities.",
+                'comfort': "You chose presence over solutions. Sometimes being there is the most powerful thing you can do."
+            };
+            
+            const elenaReflections = {
+                'use-potion': "I saw the kindness in your choice. Even when it seemed futile, you chose to honor their hope.",
+                'explain': "That took courage. Hard truths are... hard. But they're often what people need to heal.",
+                'comfort': "You understood something I'm still learning - that healing isn't always about fixing."
+            };
+            
+            const playerThoughts = {
+                'use-potion': "Maybe hope itself has value, even when it seems pointless.",
+                'explain': "I'm learning that being kind doesn't always mean being gentle.",
+                'comfort': "Sometimes the most powerful thing you can do is simply witness someone's pain."
+            };
+            
+            document.getElementById('personal-reflection').textContent = reflections[lastChoice.choice];
+            document.getElementById('elena-reflection').textContent = elenaReflections[lastChoice.choice];
+            document.getElementById('player-thought').textContent = playerThoughts[lastChoice.choice];
+        }
+
+        function showEnding() {
+            document.getElementById('reflection').classList.add('hidden');
+            
+            // Generate personalized ending
+            const ending = generatePersonalizedEnding();
+            document.getElementById('ending-content').innerHTML = ending;
+            document.getElementById('ending').classList.remove('hidden');
+        }
+
+        function generatePersonalizedEnding() {
+            const totalGrowth = gameState.wisdom + gameState.courage + gameState.compassion;
+            const dominantTrait = getDominantTrait();
+            
+            let endingType = '';
+            let endingMessage = '';
+            let personalMessage = '';
+            
+            if (dominantTrait === 'compassion') {
+                endingType = 'The Healer';
+                endingMessage = "Your journey taught you that true strength lies in compassion. You didn't just heal bodies - you healed hearts.";
+                personalMessage = "In a world that often rewards hardness, you chose softness. That's not weakness - that's revolutionary.";
+            } else if (dominantTrait === 'wisdom') {
+                endingType = 'The Guide';
+                endingMessage = "You learned that wisdom isn't about having all the answers - it's about asking the right questions.";
+                personalMessage = "You've become someone others can turn to, not because you're perfect, but because you're thoughtful.";
+            } else if (dominantTrait === 'courage') {
+                endingType = 'The Brave Heart';
+                endingMessage = "You discovered that courage isn't the absence of fear - it's acting despite the fear.";
+                personalMessage = "Every time you chose the hard right over the easy wrong, you became a little braver.";
+            } else {
+                endingType = 'The Balanced Soul';
+                endingMessage = "You found harmony between strength and gentleness, wisdom and action, courage and compassion.";
+                personalMessage = "Balance isn't about perfection - it's about knowing when to be what the moment needs.";
+            }
+            
+            return `
+                <h3>${endingType}</h3>
+                <p>${endingMessage}</p>
+                <div class="reflection-box">
+                    <strong>Personal Message:</strong>
+                    <p>${personalMessage}</p>
+                </div>
+                <div class="reflection-box">
+                    <strong>Your Growth Journey:</strong>
+                    <p>Wisdom: ${gameState.wisdom} | Courage: ${gameState.courage} | Compassion: ${gameState.compassion}</p>
+                    <p>You made ${gameState.choices.length} meaningful choices that shaped who you became.</p>
+                </div>
+                <div class="reflection-box">
+                    <strong>Take This With You:</strong>
+                    <p>The person you became in this story - the choices you made, the growth you experienced - that's not just fiction. Those are real parts of who you can be.</p>
+                    <p>In your real life, when faced with difficult choices, remember: you have the capacity for wisdom, courage, and compassion. You've proven it here.</p>
+                </div>
+            `;
+        }
+
+        function getDominantTrait() {
+            if (gameState.compassion >= gameState.wisdom && gameState.compassion >= gameState.courage) {
+                return 'compassion';
+            } else if (gameState.wisdom >= gameState.courage) {
+                return 'wisdom';
+            } else if (gameState.courage > 0) {
+                return 'courage';
+            } else {
+                return 'balanced';
+            }
+        }
+
+        function updateEmotionalDisplay() {
+            document.getElementById('stressLevel').textContent = gameState.stress;
+            document.getElementById('stressFill').style.width = gameState.stress + '%';
+            
+            document.getElementById('confidenceLevel').textContent = gameState.confidence;
+            document.getElementById('confidenceFill').style.width = gameState.confidence + '%';
+            
+            document.getElementById('empathyLevel').textContent = gameState.empathy;
+            document.getElementById('empathyFill').style.width = gameState.empathy + '%';
+        }
+
+        function updateGrowthDisplay() {
+            document.getElementById('wisdomGrowth').textContent = gameState.wisdom;
+            document.getElementById('courageGrowth').textContent = gameState.courage;
+            document.getElementById('compassionGrowth').textContent = gameState.compassion;
+        }
+
+        // Initialize display
+        updateEmotionalDisplay();
+        updateGrowthDisplay();
+    </script>
+</body>
+</html>

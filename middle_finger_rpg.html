@@ -1,0 +1,1789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏰 NEXUS REALMS - Middle Finger Control</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Orbitron', monospace;
+            background: linear-gradient(45deg, #0a0a0a, #1a1a2e, #16213e);
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        #gameCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: linear-gradient(135deg, #2c5530 0%, #1a4c1a 100%);
+            border: 3px solid #00ff88;
+            box-shadow: 0 0 50px rgba(0, 255, 136, 0.5);
+        }
+
+        /* Webcam Display */
+        #webcamContainer {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 220px;
+            height: 165px;
+            border: 3px solid #00ff88;
+            border-radius: 15px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 100;
+        }
+
+        #webcam {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+
+        .gesture-overlay {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            right: 5px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 8px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        /* Middle Finger Detector */
+        .middle-finger-detector {
+            position: absolute;
+            top: 195px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            border: 3px solid #ff6b6b;
+            min-width: 220px;
+            z-index: 100;
+        }
+
+        .finger-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 8px 0;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+
+        .finger-icon {
+            font-size: 24px;
+            width: 30px;
+            text-align: center;
+        }
+
+        .finger-name {
+            flex: 1;
+            margin-left: 10px;
+            font-weight: bold;
+        }
+
+        .finger-state {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .finger-up {
+            background: #00ff88;
+            color: #000;
+        }
+
+        .finger-down {
+            background: #666;
+            color: #fff;
+        }
+
+        .middle-finger-active {
+            background: rgba(255, 107, 107, 0.3) !important;
+            border: 2px solid #ff6b6b !important;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 107, 107, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); }
+        }
+
+        /* Movement Direction Display */
+        .direction-display {
+            position: absolute;
+            top: 400px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            border: 3px solid #ffd700;
+            min-width: 220px;
+            z-index: 100;
+        }
+
+        .direction-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .direction-cell {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .direction-active {
+            background: #ffd700 !important;
+            border-color: #ffd700 !important;
+            color: #000 !important;
+            transform: scale(1.2);
+        }
+
+        /* Game UI */
+        .game-hud {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #00ff88;
+            backdrop-filter: blur(10px);
+            min-width: 280px;
+            z-index: 100;
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #00ff88;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .control-btn {
+            background: linear-gradient(45deg, #ff0080, #00ff80);
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .control-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(255, 0, 128, 0.4);
+        }
+
+        .start-screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            border: 3px solid #ffd700;
+            text-align: center;
+            max-width: 600px;
+            z-index: 1000;
+        }
+
+        .instructions {
+            background: rgba(255, 107, 107, 0.1);
+            border: 2px solid #ff6b6b;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .hidden { display: none; }
+
+        .stat-bar {
+            width: 150px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 5px 0;
+        }
+
+        .stat-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-50px); }
+        }
+
+        @keyframes particle {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0) translateY(-30px); }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Start Screen -->
+    <div class="start-screen" id="startScreen">
+        <h1 style="font-size: 2.5rem; color: #ffd700; margin-bottom: 20px;">🏰 NEXUS REALMS</h1>
+        <h2 style="color: #ff6b6b; margin-bottom: 20px;">🖕 MIDDLE FINGER CONTROL</h2>
+        
+        <div class="instructions">
+            <h3 style="color: #ff6b6b; margin-bottom: 15px;">🎯 How to Control:</h3>
+            <p><strong>🖕 ONLY Middle Finger Up</strong> = Move Character</p>
+            <p><strong>👊 Closed Fist</strong> = Attack Enemies</p>
+            <p><strong>Point Middle Finger</strong> in direction to move:</p>
+            <div style="margin: 15px 0;">
+                <span style="font-size: 20px;">⬆️ Up | ⬇️ Down | ⬅️ Left | ➡️ Right</span>
+            </div>
+            <p style="color: #ffd700;"><strong>Advanced Detection:</strong> Only middle finger will control movement!</p>
+        </div>
+        
+        <button class="control-btn" onclick="enableMiddleFingerControl()" style="font-size: 16px; padding: 15px 30px;">
+            🖕 START MIDDLE FINGER CONTROL
+        </button>
+        <br><br>
+        <button class="control-btn" onclick="startWithKeyboard()" style="font-size: 16px; padding: 15px 30px;">
+            ⌨️ START WITH KEYBOARD
+        </button>
+    </div>
+
+    <!-- Webcam Container -->
+    <div id="webcamContainer" class="hidden">
+        <video id="webcam" autoplay muted></video>
+        <div class="gesture-overlay" id="gestureOverlay">
+            <span id="currentGesture">🤚 Ready</span>
+        </div>
+    </div>
+
+    <!-- Middle Finger Detector -->
+    <div class="middle-finger-detector hidden" id="middleFingerDetector">
+        <h4 style="color: #ff6b6b; margin-bottom: 15px; text-align: center;">🖕 FINGER DETECTOR</h4>
+        
+        <div class="finger-status" id="thumbStatus">
+            <span class="finger-icon">👍</span>
+            <span class="finger-name">Thumb</span>
+            <span class="finger-state finger-down" id="thumbState">DOWN</span>
+        </div>
+        
+        <div class="finger-status" id="indexStatus">
+            <span class="finger-icon">👆</span>
+            <span class="finger-name">Index</span>
+            <span class="finger-state finger-down" id="indexState">DOWN</span>
+        </div>
+        
+        <div class="finger-status" id="middleStatus">
+            <span class="finger-icon">🖕</span>
+            <span class="finger-name">MIDDLE</span>
+            <span class="finger-state finger-down" id="middleState">DOWN</span>
+        </div>
+        
+        <div class="finger-status" id="ringStatus">
+            <span class="finger-icon">💍</span>
+            <span class="finger-name">Ring</span>
+            <span class="finger-state finger-down" id="ringState">DOWN</span>
+        </div>
+        
+        <div class="finger-status" id="pinkyStatus">
+            <span class="finger-icon">🤙</span>
+            <span class="finger-name">Pinky</span>
+            <span class="finger-state finger-down" id="pinkyState">DOWN</span>
+        </div>
+    </div>
+
+    <!-- Direction Display -->
+    <div class="direction-display hidden" id="directionDisplay">
+        <h4 style="color: #ffd700; text-align: center; margin-bottom: 10px;">🎯 MOVEMENT DIRECTION</h4>
+        <div style="text-align: center; margin-bottom: 10px;">
+            <strong>Current: <span id="currentDirection">NONE</span></strong>
+        </div>
+        
+        <div class="direction-grid">
+            <div></div>
+            <div class="direction-cell" id="dirUp">⬆️</div>
+            <div></div>
+            <div class="direction-cell" id="dirLeft">⬅️</div>
+            <div class="direction-cell" id="dirCenter">🎯</div>
+            <div class="direction-cell" id="dirRight">➡️</div>
+            <div></div>
+            <div class="direction-cell" id="dirDown">⬇️</div>
+            <div></div>
+        </div>
+    </div>
+
+    <!-- Game HUD -->
+    <div class="game-hud hidden" id="gameHUD">
+        <h3 style="color: #00ff88; margin-bottom: 15px;">🎮 Hero Status</h3>
+        
+        <div style="margin-bottom: 10px;">
+            <strong id="heroName">Middle Finger Warrior</strong>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: 8px 0;">
+            <span>🏆 Level:</span>
+            <span id="heroLevel" style="color: #ffd700; font-weight: bold; font-size: 18px;">1</span>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: 8px 0;">
+            <span>⭐ XP:</span>
+            <div class="stat-bar">
+                <div class="stat-fill" id="xpBar" style="width: 0%; background: linear-gradient(90deg, #ffd700, #ffff00);"></div>
+            </div>
+            <span id="xpText" style="font-size: 12px;">0/100</span>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: 8px 0;">
+            <span>❤️ Health:</span>
+            <div class="stat-bar">
+                <div class="stat-fill" id="healthBar" style="width: 100%; background: #ff4444;"></div>
+            </div>
+            <span id="healthText">100/100</span>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: 8px 0;">
+            <span>⚡ Mana:</span>
+            <div class="stat-bar">
+                <div class="stat-fill" id="manaBar" style="width: 100%; background: #4444ff;"></div>
+            </div>
+            <span id="manaText">100/100</span>
+        </div>
+        
+        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.2);">
+            <div style="display: flex; justify-content: space-between;">
+                <span>💰 Gold:</span>
+                <span id="goldAmount" style="color: #ffd700;">500</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span>🌊 Wave:</span>
+                <span id="currentWave" style="color: #00ffff;">1</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span>👺 Enemies:</span>
+                <span id="enemyCount" style="color: #ff6b6b;">5</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span>🎯 Skills:</span>
+                <span id="skillPoints" style="color: #ff69b4;">0</span>
+            </div>
+        </div>
+        
+        <div id="prestigeInfo" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.2); display: none;">
+            <div style="display: flex; justify-content: space-between;">
+                <span>⭐ Prestige:</span>
+                <span id="prestigeLevel" style="color: #9370db;">0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls hidden" id="gameControls">
+        <button class="control-btn" onclick="movePlayer('up')">⬆️</button>
+        <button class="control-btn" onclick="movePlayer('down')">⬇️</button>
+        <button class="control-btn" onclick="movePlayer('left')">⬅️</button>
+        <button class="control-btn" onclick="movePlayer('right')">➡️</button>
+        <button class="control-btn" onclick="playerAttack()">⚔️ Attack</button>
+        <button class="control-btn" onclick="spawnEnemies()">🔄 Reset</button>
+    </div>
+
+    <!-- MediaPipe Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1640029074/camera_utils.js"></script>
+    
+    <script>
+        // Game State
+        const gameState = {
+            player: {
+                x: 400,
+                y: 300,
+                health: 100,
+                maxHealth: 100,
+                mana: 100,
+                maxMana: 100,
+                level: 1,
+                xp: 0,
+                xpToNext: 100,
+                gold: 500,
+                attack: 30,
+                defense: 10,
+                speed: 6,
+                totalXp: 0,
+                skillPoints: 0,
+                prestige: 0
+            },
+            enemies: [],
+            boss: null,
+            bossActive: false,
+            gameStarted: false,
+            gestureEnabled: false,
+            lastDirection: null,
+            fingerStates: {
+                thumb: false,
+                index: false,
+                middle: false,
+                ring: false,
+                pinky: false
+            },
+            directionBuffer: [],
+            currentWave: 1,
+            enemiesKilled: 0
+        };
+
+        // Hand Gesture Recognition
+        let hands, camera;
+        
+        function enableMiddleFingerControl() {
+            gameState.gestureEnabled = true;
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('webcamContainer').classList.remove('hidden');
+            document.getElementById('middleFingerDetector').classList.remove('hidden');
+            document.getElementById('directionDisplay').classList.remove('hidden');
+            document.getElementById('gameHUD').classList.remove('hidden');
+            document.getElementById('gameControls').classList.remove('hidden');
+            
+            initializeHandTracking();
+            startGame();
+        }
+
+        function startWithKeyboard() {
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('gameHUD').classList.remove('hidden');
+            document.getElementById('gameControls').classList.remove('hidden');
+            startGame();
+        }
+
+        function initializeHandTracking() {
+            const videoElement = document.getElementById('webcam');
+            
+            hands = new Hands({
+                locateFile: (file) => {
+                    return `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/${file}`;
+                }
+            });
+
+            hands.setOptions({
+                maxNumHands: 1,
+                modelComplexity: 1,
+                minDetectionConfidence: 0.8,
+                minTrackingConfidence: 0.7
+            });
+
+            hands.onResults(onHandResults);
+
+            camera = new Camera(videoElement, {
+                onFrame: async () => {
+                    await hands.send({image: videoElement});
+                },
+                width: 220,
+                height: 165
+            });
+
+            camera.start();
+        }
+
+        function onHandResults(results) {
+            if (!gameState.gestureEnabled || !gameState.gameStarted) return;
+            
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                const landmarks = results.multiHandLandmarks[0];
+                const fingerAnalysis = analyzeFingers(landmarks);
+                
+                updateFingerDisplay(fingerAnalysis);
+                
+                // Only process movement if ONLY middle finger is up
+                if (fingerAnalysis.onlyMiddleUp) {
+                    const direction = calculateMiddleFingerDirection(landmarks);
+                    handleMiddleFingerMovement(direction);
+                } else if (fingerAnalysis.allDown) {
+                    // Closed fist - attack
+                    handleFistAttack();
+                } else {
+                    // Other gestures - stop movement
+                    updateDirectionDisplay('NONE');
+                }
+            } else {
+                // No hand detected
+                resetFingerDisplay();
+                updateDirectionDisplay('NONE');
+            }
+        }
+
+        function analyzeFingers(landmarks) {
+            // Get all finger tip and joint positions
+            const wrist = landmarks[0];
+            
+            // Thumb (different logic - horizontal movement)
+            const thumb_tip = landmarks[4];
+            const thumb_ip = landmarks[3];
+            const thumb_mcp = landmarks[2];
+            
+            // Other fingers (vertical movement)
+            const index_tip = landmarks[8];
+            const index_pip = landmarks[6];
+            const index_mcp = landmarks[5];
+            
+            const middle_tip = landmarks[12];
+            const middle_pip = landmarks[10];
+            const middle_mcp = landmarks[9];
+            
+            const ring_tip = landmarks[16];
+            const ring_pip = landmarks[14];
+            const ring_mcp = landmarks[13];
+            
+            const pinky_tip = landmarks[20];
+            const pinky_pip = landmarks[18];
+            const pinky_mcp = landmarks[17];
+
+            // Advanced finger detection with multiple checkpoints
+            const fingers = {
+                thumb: isThumbUp(thumb_tip, thumb_ip, thumb_mcp, wrist),
+                index: isFingerUp(index_tip, index_pip, index_mcp),
+                middle: isFingerUp(middle_tip, middle_pip, middle_mcp),
+                ring: isFingerUp(ring_tip, ring_pip, ring_mcp),
+                pinky: isFingerUp(pinky_tip, pinky_pip, pinky_mcp)
+            };
+
+            // Store finger states
+            gameState.fingerStates = fingers;
+
+            // Check if only middle finger is up
+            const onlyMiddleUp = fingers.middle && !fingers.thumb && !fingers.index && !fingers.ring && !fingers.pinky;
+            const allDown = !fingers.thumb && !fingers.index && !fingers.middle && !fingers.ring && !fingers.pinky;
+
+            return {
+                fingers: fingers,
+                onlyMiddleUp: onlyMiddleUp,
+                allDown: allDown,
+                middleTip: middle_tip,
+                wrist: wrist
+            };
+        }
+
+        function isFingerUp(tip, pip, mcp) {
+            // Multiple checks for accuracy
+            const tipAbovePip = tip.y < pip.y - 0.02; // Tip above PIP joint
+            const pipAboveMcp = pip.y < mcp.y - 0.01; // PIP above MCP joint
+            const tipAboveMcp = tip.y < mcp.y - 0.03; // Tip above MCP joint
+            
+            // All conditions must be true for finger to be considered "up"
+            return tipAbovePip && pipAboveMcp && tipAboveMcp;
+        }
+
+        function isThumbUp(tip, ip, mcp, wrist) {
+            // Thumb uses horizontal logic (x-axis)
+            const tipRightOfIp = Math.abs(tip.x - ip.x) > 0.02;
+            const tipRightOfMcp = Math.abs(tip.x - mcp.x) > 0.03;
+            
+            return tipRightOfIp && tipRightOfMcp;
+        }
+
+        function calculateMiddleFingerDirection(landmarks) {
+            const middle_tip = landmarks[12];
+            const wrist = landmarks[0];
+            
+            // Calculate direction vector from wrist to middle finger tip
+            const deltaX = middle_tip.x - wrist.x;
+            const deltaY = middle_tip.y - wrist.y;
+            
+            // Determine primary direction with higher sensitivity
+            let direction = 'center';
+            
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                // Horizontal movement is dominant
+                if (deltaX > 0.08) {
+                    direction = 'right';
+                } else if (deltaX < -0.08) {
+                    direction = 'left';
+                }
+            } else {
+                // Vertical movement is dominant
+                if (deltaY > 0.08) {
+                    direction = 'down';
+                } else if (deltaY < -0.08) {
+                    direction = 'up';
+                }
+            }
+            
+            return direction;
+        }
+
+        function handleMiddleFingerMovement(direction) {
+            // Add to direction buffer for smoothing
+            gameState.directionBuffer.push(direction);
+            if (gameState.directionBuffer.length > 3) {
+                gameState.directionBuffer.shift();
+            }
+            
+            // Get most common direction
+            const smoothedDirection = getMostCommonDirection(gameState.directionBuffer);
+            
+            if (smoothedDirection !== gameState.lastDirection) {
+                gameState.lastDirection = smoothedDirection;
+                updateDirectionDisplay(smoothedDirection);
+                
+                // Move player if direction is not center
+                if (smoothedDirection !== 'center' && smoothedDirection !== 'NONE') {
+                    movePlayer(smoothedDirection);
+                }
+            }
+        }
+
+        function getMostCommonDirection(buffer) {
+            if (buffer.length === 0) return 'NONE';
+            
+            const counts = {};
+            buffer.forEach(dir => {
+                counts[dir] = (counts[dir] || 0) + 1;
+            });
+            
+            return Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
+        }
+
+        function handleFistAttack() {
+            updateDirectionDisplay('ATTACK');
+            playerAttack();
+        }
+
+        function updateFingerDisplay(analysis) {
+            const fingers = analysis.fingers;
+            
+            // Update each finger status
+            updateFingerStatus('thumb', fingers.thumb);
+            updateFingerStatus('index', fingers.index);
+            updateFingerStatus('middle', fingers.middle);
+            updateFingerStatus('ring', fingers.ring);
+            updateFingerStatus('pinky', fingers.pinky);
+            
+            // Highlight middle finger detector if only middle is up
+            const detector = document.getElementById('middleFingerDetector');
+            const middleStatus = document.getElementById('middleStatus');
+            
+            if (analysis.onlyMiddleUp) {
+                detector.classList.add('middle-finger-active');
+                middleStatus.classList.add('middle-finger-active');
+                document.getElementById('gestureOverlay').innerHTML = '<span style="color: #ff6b6b;">🖕 MIDDLE FINGER CONTROL ACTIVE</span>';
+            } else {
+                detector.classList.remove('middle-finger-active');
+                middleStatus.classList.remove('middle-finger-active');
+                
+                if (analysis.allDown) {
+                    document.getElementById('gestureOverlay').innerHTML = '<span style="color: #ff4444;">👊 FIST ATTACK</span>';
+                } else {
+                    document.getElementById('gestureOverlay').innerHTML = '<span style="color: #ffffff;">🤚 Show Only Middle Finger</span>';
+                }
+            }
+        }
+
+        function updateFingerStatus(fingerName, isUp) {
+            const stateElement = document.getElementById(fingerName + 'State');
+            const statusElement = document.getElementById(fingerName + 'Status');
+            
+            if (isUp) {
+                stateElement.textContent = 'UP';
+                stateElement.className = 'finger-state finger-up';
+                statusElement.style.background = 'rgba(0, 255, 136, 0.2)';
+            } else {
+                stateElement.textContent = 'DOWN';
+                stateElement.className = 'finger-state finger-down';
+                statusElement.style.background = 'rgba(255, 255, 255, 0.1)';
+            }
+        }
+
+        function resetFingerDisplay() {
+            ['thumb', 'index', 'middle', 'ring', 'pinky'].forEach(finger => {
+                updateFingerStatus(finger, false);
+            });
+            
+            document.getElementById('middleFingerDetector').classList.remove('middle-finger-active');
+            document.getElementById('gestureOverlay').innerHTML = '<span style="color: #ff6666;">❌ No Hand Detected</span>';
+        }
+
+        function updateDirectionDisplay(direction) {
+            // Reset all direction cells
+            document.querySelectorAll('.direction-cell').forEach(cell => {
+                cell.classList.remove('direction-active');
+            });
+            
+            // Update current direction text
+            document.getElementById('currentDirection').textContent = direction.toUpperCase();
+            
+            // Highlight active direction
+            const directionMap = {
+                'up': 'dirUp',
+                'down': 'dirDown',
+                'left': 'dirLeft',
+                'right': 'dirRight',
+                'center': 'dirCenter'
+            };
+            
+            if (directionMap[direction]) {
+                document.getElementById(directionMap[direction]).classList.add('direction-active');
+            }
+        }
+
+        // Game Functions
+        function startGame() {
+            gameState.gameStarted = true;
+            spawnEnemies();
+            gameLoop();
+        }
+
+        function spawnEnemies() {
+            gameState.enemies = [];
+            const enemyTypes = [
+                { sprite: '👺', health: 60, attack: 12, speed: 1.5, name: 'Goblin' },
+                { sprite: '🧟', health: 80, attack: 10, speed: 1.2, name: 'Zombie' },
+                { sprite: '👻', health: 40, attack: 15, speed: 2.0, name: 'Ghost' },
+                { sprite: '🐺', health: 70, attack: 14, speed: 1.8, name: 'Wolf' }
+            ];
+            
+            for (let i = 0; i < 5; i++) {
+                const enemyType = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
+                gameState.enemies.push({
+                    x: Math.random() * (canvas.width - 100) + 50,
+                    y: Math.random() * (canvas.height - 100) + 50,
+                    health: enemyType.health,
+                    maxHealth: enemyType.health,
+                    attack: enemyType.attack,
+                    speed: enemyType.speed,
+                    sprite: enemyType.sprite,
+                    name: enemyType.name,
+                    lastAttack: 0
+                });
+            }
+            updateEnemyCount();
+        }
+
+        function movePlayer(direction) {
+            const speed = gameState.player.speed;
+            
+            switch(direction) {
+                case 'up':
+                    gameState.player.y = Math.max(40, gameState.player.y - speed * 3);
+                    break;
+                case 'down':
+                    gameState.player.y = Math.min(canvas.height - 40, gameState.player.y + speed * 3);
+                    break;
+                case 'left':
+                    gameState.player.x = Math.max(40, gameState.player.x - speed * 3);
+                    break;
+                case 'right':
+                    gameState.player.x = Math.min(canvas.width - 40, gameState.player.x + speed * 3);
+                    break;
+            }
+        }
+
+        function playerAttack() {
+            if (gameState.player.mana < 15) return;
+            
+            gameState.player.mana -= 15;
+            let targetHit = false;
+            
+            // Attack enemies
+            gameState.enemies.forEach((enemy, index) => {
+                const distance = getDistance(gameState.player, enemy);
+                if (distance < 90) {
+                    const damage = calculatePlayerDamage();
+                    enemy.health -= damage;
+                    createDamageEffect(enemy.x, enemy.y, damage);
+                    targetHit = true;
+                    
+                    if (enemy.health <= 0) {
+                        const goldReward = calculateGoldReward(enemy);
+                        const xpReward = calculateXpReward(enemy);
+                        
+                        gameState.player.gold += goldReward;
+                        gainExperience(xpReward);
+                        gameState.enemiesKilled++;
+                        
+                        gameState.enemies.splice(index, 1);
+                        updateEnemyCount();
+                        
+                        // Spawn boss when all enemies are defeated
+                        if (gameState.enemies.length === 0 && !gameState.bossActive) {
+                            setTimeout(() => {
+                                spawnBoss();
+                            }, 1000);
+                        }
+                    }
+                }
+            });
+            
+            // Attack boss
+            if (gameState.boss) {
+                const distance = getDistance(gameState.player, gameState.boss);
+                if (distance < 120) {
+                    const damage = calculatePlayerDamage() + 5; // Bonus damage vs boss
+                    gameState.boss.health -= damage;
+                    createDamageEffect(gameState.boss.x, gameState.boss.y, damage);
+                    targetHit = true;
+                    
+                    if (gameState.boss.health <= 0) {
+                        defeatBoss();
+                    }
+                }
+            }
+            
+            if (targetHit) {
+                createAttackEffect(gameState.player.x, gameState.player.y);
+            }
+        }
+
+        function calculatePlayerDamage() {
+            const baseDamage = gameState.player.attack;
+            const levelBonus = Math.floor(gameState.player.level * 1.5);
+            const randomBonus = Math.floor(Math.random() * 15);
+            return baseDamage + levelBonus + randomBonus;
+        }
+
+        function calculateGoldReward(enemy) {
+            const baseGold = 30;
+            const levelMultiplier = 1 + (gameState.player.level * 0.1);
+            const waveBonus = gameState.currentWave * 5;
+            return Math.floor((baseGold + waveBonus) * levelMultiplier);
+        }
+
+        function calculateXpReward(enemy) {
+            const baseXp = 25;
+            const enemyLevelBonus = Math.floor(gameState.currentWave * 2);
+            const playerLevelPenalty = Math.max(1, gameState.player.level * 0.05);
+            return Math.floor((baseXp + enemyLevelBonus) / playerLevelPenalty);
+        }
+
+        function gainExperience(xp) {
+            gameState.player.xp += xp;
+            gameState.player.totalXp += xp;
+            
+            // Check for level up
+            while (gameState.player.xp >= gameState.player.xpToNext && gameState.player.level < 100) {
+                levelUp();
+            }
+            
+            // Handle level 100 cap
+            if (gameState.player.level >= 100) {
+                gameState.player.xp = 0;
+                gameState.player.xpToNext = 0;
+                
+                // Prestige option at level 100
+                if (gameState.player.level === 100 && gameState.player.prestige === 0) {
+                    showPrestigeOption();
+                }
+            }
+        }
+
+        function levelUp() {
+            gameState.player.xp -= gameState.player.xpToNext;
+            gameState.player.level++;
+            
+            // Calculate next level XP requirement
+            gameState.player.xpToNext = calculateXpRequired(gameState.player.level);
+            
+            // Level up bonuses
+            const healthIncrease = calculateHealthIncrease();
+            const manaIncrease = calculateManaIncrease();
+            const attackIncrease = calculateAttackIncrease();
+            const defenseIncrease = calculateDefenseIncrease();
+            
+            gameState.player.maxHealth += healthIncrease;
+            gameState.player.health = gameState.player.maxHealth; // Full heal on level up
+            gameState.player.maxMana += manaIncrease;
+            gameState.player.mana = gameState.player.maxMana; // Full mana on level up
+            gameState.player.attack += attackIncrease;
+            gameState.player.defense += defenseIncrease;
+            gameState.player.skillPoints += 1;
+            
+            // Special bonuses at milestone levels
+            if (gameState.player.level % 10 === 0) {
+                gameState.player.skillPoints += 2; // Extra skill points every 10 levels
+                gameState.player.speed += 1; // Speed increase every 10 levels
+            }
+            
+            // Show level up notification
+            showLevelUpNotification(healthIncrease, manaIncrease, attackIncrease, defenseIncrease);
+        }
+
+        function calculateXpRequired(level) {
+            // Exponential XP curve that gets steeper at higher levels
+            if (level <= 10) {
+                return Math.floor(100 * Math.pow(1.15, level - 1));
+            } else if (level <= 50) {
+                return Math.floor(200 * Math.pow(1.12, level - 10));
+            } else if (level <= 80) {
+                return Math.floor(500 * Math.pow(1.10, level - 50));
+            } else {
+                return Math.floor(1000 * Math.pow(1.08, level - 80));
+            }
+        }
+
+        function calculateHealthIncrease() {
+            const baseIncrease = 15;
+            const levelBonus = Math.floor(gameState.player.level / 5);
+            return baseIncrease + levelBonus;
+        }
+
+        function calculateManaIncrease() {
+            const baseIncrease = 10;
+            const levelBonus = Math.floor(gameState.player.level / 8);
+            return baseIncrease + levelBonus;
+        }
+
+        function calculateAttackIncrease() {
+            const baseIncrease = 3;
+            const levelBonus = Math.floor(gameState.player.level / 10);
+            return baseIncrease + levelBonus;
+        }
+
+        function calculateDefenseIncrease() {
+            const baseIncrease = 2;
+            const levelBonus = Math.floor(gameState.player.level / 15);
+            return baseIncrease + levelBonus;
+        }
+
+        function showLevelUpNotification(health, mana, attack, defense) {
+            const levelUpDiv = document.createElement('div');
+            levelUpDiv.style.position = 'absolute';
+            levelUpDiv.style.top = '30%';
+            levelUpDiv.style.left = '50%';
+            levelUpDiv.style.transform = 'translate(-50%, -50%)';
+            levelUpDiv.style.background = 'rgba(0, 255, 0, 0.95)';
+            levelUpDiv.style.color = '#000';
+            levelUpDiv.style.padding = '30px';
+            levelUpDiv.style.borderRadius = '20px';
+            levelUpDiv.style.border = '3px solid #00ff00';
+            levelUpDiv.style.fontSize = '20px';
+            levelUpDiv.style.fontWeight = 'bold';
+            levelUpDiv.style.textAlign = 'center';
+            levelUpDiv.style.zIndex = '1000';
+            levelUpDiv.style.animation = 'pulse 0.5s ease-in-out 3';
+            
+            let milestoneBonus = '';
+            if (gameState.player.level % 10 === 0) {
+                milestoneBonus = `<div style="color: #ffd700; margin-top: 15px;">🌟 MILESTONE LEVEL ${gameState.player.level}! 🌟<br>+2 Skill Points, +1 Speed!</div>`;
+            }
+            
+            levelUpDiv.innerHTML = `
+                🎉 LEVEL UP! 🎉<br>
+                <div style="font-size: 24px; color: #ff6b6b; margin: 10px 0;">
+                    LEVEL ${gameState.player.level}
+                </div>
+                <div style="font-size: 16px; margin-top: 15px;">
+                    ❤️ Health: +${health}<br>
+                    ⚡ Mana: +${mana}<br>
+                    ⚔️ Attack: +${attack}<br>
+                    🛡️ Defense: +${defense}<br>
+                    🎯 Skill Points: +1
+                </div>
+                ${milestoneBonus}
+                <div style="margin-top: 15px; font-size: 14px; opacity: 0.8;">
+                    XP to Next: ${gameState.player.xpToNext}
+                </div>
+            `;
+            
+            document.body.appendChild(levelUpDiv);
+            
+            setTimeout(() => levelUpDiv.remove(), 4000);
+        }
+
+        function showPrestigeOption() {
+            const prestigeDiv = document.createElement('div');
+            prestigeDiv.style.position = 'absolute';
+            prestigeDiv.style.top = '50%';
+            prestigeDiv.style.left = '50%';
+            prestigeDiv.style.transform = 'translate(-50%, -50%)';
+            prestigeDiv.style.background = 'rgba(138, 43, 226, 0.95)';
+            prestigeDiv.style.color = '#fff';
+            prestigeDiv.style.padding = '40px';
+            prestigeDiv.style.borderRadius = '25px';
+            prestigeDiv.style.border = '4px solid #ffd700';
+            prestigeDiv.style.fontSize = '18px';
+            prestigeDiv.style.fontWeight = 'bold';
+            prestigeDiv.style.textAlign = 'center';
+            prestigeDiv.style.zIndex = '1000';
+            prestigeDiv.style.boxShadow = '0 0 50px rgba(255, 215, 0, 0.5)';
+            
+            prestigeDiv.innerHTML = `
+                ⭐ CONGRATULATIONS! ⭐<br>
+                <div style="font-size: 28px; color: #ffd700; margin: 15px 0;">
+                    LEVEL 100 REACHED!
+                </div>
+                <div style="margin: 20px 0;">
+                    🏆 You are now a MASTER Middle Finger Warrior! 🏆<br><br>
+                    <strong>PRESTIGE AVAILABLE:</strong><br>
+                    Reset to Level 1 but keep 50% of your stats<br>
+                    and gain a permanent 25% XP bonus!
+                </div>
+                <button onclick="prestige(); this.parentElement.remove();" 
+                        style="margin: 10px; padding: 15px 25px; font-size: 16px; background: #ffd700; color: #000; border: none; border-radius: 10px; cursor: pointer; font-weight: bold;">
+                    ⭐ PRESTIGE NOW
+                </button>
+                <button onclick="this.parentElement.remove();" 
+                        style="margin: 10px; padding: 15px 25px; font-size: 16px; background: #ff6b6b; color: #fff; border: none; border-radius: 10px; cursor: pointer; font-weight: bold;">
+                    ❌ STAY AT 100
+                </button>
+            `;
+            
+            document.body.appendChild(prestigeDiv);
+        }
+
+        function prestige() {
+            gameState.player.prestige++;
+            gameState.player.level = 1;
+            gameState.player.xp = 0;
+            gameState.player.xpToNext = 100;
+            
+            // Keep 50% of stats
+            gameState.player.maxHealth = Math.floor(gameState.player.maxHealth * 0.5);
+            gameState.player.health = gameState.player.maxHealth;
+            gameState.player.maxMana = Math.floor(gameState.player.maxMana * 0.5);
+            gameState.player.mana = gameState.player.maxMana;
+            gameState.player.attack = Math.floor(gameState.player.attack * 0.5);
+            gameState.player.defense = Math.floor(gameState.player.defense * 0.5);
+            
+            // Reset other stats
+            gameState.currentWave = 1;
+            gameState.enemiesKilled = 0;
+            
+            // Show prestige notification
+            const prestigeNotification = document.createElement('div');
+            prestigeNotification.style.position = 'absolute';
+            prestigeNotification.style.top = '50%';
+            prestigeNotification.style.left = '50%';
+            prestigeNotification.style.transform = 'translate(-50%, -50%)';
+            prestigeNotification.style.background = 'rgba(255, 215, 0, 0.95)';
+            prestigeNotification.style.color = '#000';
+            prestigeNotification.style.padding = '30px';
+            prestigeNotification.style.borderRadius = '20px';
+            prestigeNotification.style.border = '3px solid #ff6b6b';
+            prestigeNotification.style.fontSize = '20px';
+            prestigeNotification.style.fontWeight = 'bold';
+            prestigeNotification.style.textAlign = 'center';
+            prestigeNotification.style.zIndex = '1000';
+            
+            prestigeNotification.innerHTML = `
+                ⭐ PRESTIGE ${gameState.player.prestige} ACHIEVED! ⭐<br>
+                <div style="margin: 15px 0;">
+                    You are now a Prestige ${gameState.player.prestige} Middle Finger Master!<br>
+                    +25% XP Bonus Active!
+                </div>
+            `;
+            
+            document.body.appendChild(prestigeNotification);
+            setTimeout(() => prestigeNotification.remove(), 3000);
+        }
+
+        function spawnBoss() {
+            gameState.boss = {
+                x: canvas.width / 2,
+                y: canvas.height / 2,
+                health: 300,
+                maxHealth: 300,
+                attack: 25,
+                defense: 8,
+                speed: 1.5,
+                name: 'Goblin King',
+                lastAttack: 0
+            };
+            
+            gameState.bossActive = true;
+            
+            // Show boss warning
+            const warningDiv = document.createElement('div');
+            warningDiv.style.position = 'absolute';
+            warningDiv.style.top = '50%';
+            warningDiv.style.left = '50%';
+            warningDiv.style.transform = 'translate(-50%, -50%)';
+            warningDiv.style.background = 'rgba(255, 0, 0, 0.9)';
+            warningDiv.style.color = '#fff';
+            warningDiv.style.padding = '30px';
+            warningDiv.style.borderRadius = '20px';
+            warningDiv.style.border = '3px solid #ff0000';
+            warningDiv.style.fontSize = '24px';
+            warningDiv.style.fontWeight = 'bold';
+            warningDiv.style.textAlign = 'center';
+            warningDiv.style.zIndex = '1000';
+            warningDiv.style.animation = 'pulse 1s infinite';
+            warningDiv.innerHTML = '⚠️ BOSS APPROACHING! ⚠️<br>🖕 GOBLIN KING APPEARS!';
+            document.body.appendChild(warningDiv);
+            
+            setTimeout(() => warningDiv.remove(), 3000);
+        }
+
+        function defeatBoss() {
+            gameState.player.gold += 200;
+            gameState.boss = null;
+            gameState.bossActive = false;
+            
+            // Victory message
+            const victoryDiv = document.createElement('div');
+            victoryDiv.style.position = 'absolute';
+            victoryDiv.style.top = '50%';
+            victoryDiv.style.left = '50%';
+            victoryDiv.style.transform = 'translate(-50%, -50%)';
+            victoryDiv.style.background = 'rgba(0, 255, 0, 0.9)';
+            victoryDiv.style.color = '#000';
+            victoryDiv.style.padding = '40px';
+            victoryDiv.style.borderRadius = '20px';
+            victoryDiv.style.border = '3px solid #00ff00';
+            victoryDiv.style.fontSize = '28px';
+            victoryDiv.style.fontWeight = 'bold';
+            victoryDiv.style.textAlign = 'center';
+            victoryDiv.style.zIndex = '1000';
+            victoryDiv.innerHTML = `
+                🏆 VICTORY! 🏆<br>
+                🖕 GOBLIN KING DEFEATED! 🖕<br>
+                <div style="margin-top: 20px; font-size: 18px;">
+                    Middle Finger Power Prevails!<br>
+                    +200 Gold Earned!
+                </div>
+                <button onclick="this.parentElement.remove(); spawnEnemies();" 
+                        style="margin-top: 20px; padding: 10px 20px; font-size: 16px; background: #ffd700; border: none; border-radius: 10px; cursor: pointer;">
+                    🔄 FIGHT AGAIN
+                </button>
+            `;
+            document.body.appendChild(victoryDiv);
+        }
+
+        function updateEnemies() {
+            gameState.enemies.forEach(enemy => {
+                // Move towards player
+                const dx = gameState.player.x - enemy.x;
+                const dy = gameState.player.y - enemy.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance > 0) {
+                    enemy.x += (dx / distance) * enemy.speed;
+                    enemy.y += (dy / distance) * enemy.speed;
+                }
+                
+                // Attack player
+                if (distance < 55 && Date.now() - enemy.lastAttack > 1800) {
+                    const damage = Math.max(1, enemy.attack - gameState.player.defense);
+                    gameState.player.health -= damage;
+                    enemy.lastAttack = Date.now();
+                    
+                    createDamageEffect(gameState.player.x, gameState.player.y, damage, '#ff0000');
+                    
+                    if (gameState.player.health <= 0) {
+                        alert('💀 Game Over! Your middle finger warrior has fallen!');
+                        location.reload();
+                    }
+                }
+            });
+            
+            // Update boss
+            if (gameState.boss) {
+                const dx = gameState.player.x - gameState.boss.x;
+                const dy = gameState.player.y - gameState.boss.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance > 80) {
+                    gameState.boss.x += (dx / distance) * gameState.boss.speed;
+                    gameState.boss.y += (dy / distance) * gameState.boss.speed;
+                }
+                
+                // Boss attack
+                if (distance < 100 && Date.now() - gameState.boss.lastAttack > 2500) {
+                    const damage = Math.max(5, gameState.boss.attack - gameState.player.defense);
+                    gameState.player.health -= damage;
+                    gameState.boss.lastAttack = Date.now();
+                    
+                    createDamageEffect(gameState.player.x, gameState.player.y, damage, '#ff0000');
+                    
+                    // Boss special effect
+                    createBossAttackEffect(gameState.boss.x, gameState.boss.y);
+                    
+                    if (gameState.player.health <= 0) {
+                        alert('💀 Game Over! The Goblin King has defeated you!');
+                        location.reload();
+                    }
+                }
+            }
+        }
+
+        function createBossAttackEffect(x, y) {
+            for (let i = 0; i < 12; i++) {
+                const particle = document.createElement('div');
+                particle.style.position = 'absolute';
+                particle.style.left = (x + Math.random() * 60 - 30) + 'px';
+                particle.style.top = (y + Math.random() * 60 - 30) + 'px';
+                particle.style.width = '8px';
+                particle.style.height = '8px';
+                particle.style.background = '#ff0000';
+                particle.style.borderRadius = '50%';
+                particle.style.pointerEvents = 'none';
+                particle.style.animation = 'particle 1s ease-out forwards';
+                document.body.appendChild(particle);
+                
+                setTimeout(() => particle.remove(), 1000);
+            }
+        }
+
+        function updateEnemies() {
+            gameState.enemies.forEach(enemy => {
+                // Move towards player
+                const dx = gameState.player.x - enemy.x;
+                const dy = gameState.player.y - enemy.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance > 0) {
+                    enemy.x += (dx / distance) * enemy.speed;
+                    enemy.y += (dy / distance) * enemy.speed;
+                }
+                
+                // Attack player
+                if (distance < 55 && Date.now() - enemy.lastAttack > 1800) {
+                    const damage = Math.max(1, enemy.attack - gameState.player.defense);
+                    gameState.player.health -= damage;
+                    enemy.lastAttack = Date.now();
+                    
+                    createDamageEffect(gameState.player.x, gameState.player.y, damage, '#ff0000');
+                    
+                    if (gameState.player.health <= 0) {
+                        alert('💀 Game Over! Your middle finger warrior has fallen!');
+                        location.reload();
+                    }
+                }
+            });
+        }
+
+        // Utility Functions
+        function getDistance(obj1, obj2) {
+            return Math.sqrt(Math.pow(obj1.x - obj2.x, 2) + Math.pow(obj1.y - obj2.y, 2));
+        }
+
+        function createDamageEffect(x, y, damage, color = '#ff4444') {
+            const damageDiv = document.createElement('div');
+            damageDiv.style.position = 'absolute';
+            damageDiv.style.left = x + 'px';
+            damageDiv.style.top = y + 'px';
+            damageDiv.style.color = color;
+            damageDiv.style.fontSize = '22px';
+            damageDiv.style.fontWeight = 'bold';
+            damageDiv.style.pointerEvents = 'none';
+            damageDiv.style.animation = 'floatUp 1.2s ease-out forwards';
+            damageDiv.textContent = `-${damage}`;
+            document.body.appendChild(damageDiv);
+            
+            setTimeout(() => damageDiv.remove(), 1200);
+        }
+
+        function createAttackEffect(x, y) {
+            for (let i = 0; i < 8; i++) {
+                const particle = document.createElement('div');
+                particle.style.position = 'absolute';
+                particle.style.left = (x + Math.random() * 40 - 20) + 'px';
+                particle.style.top = (y + Math.random() * 40 - 20) + 'px';
+                particle.style.width = '6px';
+                particle.style.height = '6px';
+                particle.style.background = '#ff6b6b';
+                particle.style.borderRadius = '50%';
+                particle.style.pointerEvents = 'none';
+                particle.style.animation = 'particle 0.8s ease-out forwards';
+                document.body.appendChild(particle);
+                
+                setTimeout(() => particle.remove(), 800);
+            }
+        }
+
+        function updateEnemyCount() {
+            document.getElementById('enemyCount').textContent = gameState.enemies.length;
+        }
+
+        function updateUI() {
+            const player = gameState.player;
+            
+            // Level and XP
+            document.getElementById('heroLevel').textContent = player.level;
+            const xpPercent = player.level >= 100 ? 100 : (player.xp / player.xpToNext) * 100;
+            document.getElementById('xpBar').style.width = xpPercent + '%';
+            
+            if (player.level >= 100) {
+                document.getElementById('xpText').textContent = 'MAX LEVEL';
+            } else {
+                document.getElementById('xpText').textContent = `${player.xp}/${player.xpToNext}`;
+            }
+            
+            // Health
+            const healthPercent = (player.health / player.maxHealth) * 100;
+            document.getElementById('healthBar').style.width = healthPercent + '%';
+            document.getElementById('healthText').textContent = `${player.health}/${player.maxHealth}`;
+            
+            // Mana
+            const manaPercent = (player.mana / player.maxMana) * 100;
+            document.getElementById('manaBar').style.width = manaPercent + '%';
+            document.getElementById('manaText').textContent = `${player.mana}/${player.maxMana}`;
+            
+            // Other stats
+            document.getElementById('goldAmount').textContent = player.gold.toLocaleString();
+            document.getElementById('currentWave').textContent = gameState.currentWave;
+            document.getElementById('enemyCount').textContent = gameState.enemies.length;
+            document.getElementById('skillPoints').textContent = player.skillPoints;
+            
+            // Prestige info
+            if (player.prestige > 0) {
+                document.getElementById('prestigeInfo').style.display = 'block';
+                document.getElementById('prestigeLevel').textContent = player.prestige;
+            }
+            
+            // Update hero name with prestige
+            let heroName = 'Middle Finger Warrior';
+            if (player.prestige > 0) {
+                heroName = `⭐${player.prestige} ${heroName}`;
+            }
+            if (player.level >= 100) {
+                heroName += ' (MAX)';
+            }
+            document.getElementById('heroName').textContent = heroName;
+        }
+
+        // Canvas Setup and Rendering
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw player (Roblox-style middle finger warrior)
+            drawRobloxPlayer(gameState.player.x, gameState.player.y);
+            
+            // Draw enemies (Roblox-style)
+            gameState.enemies.forEach(enemy => {
+                drawRobloxEnemy(enemy.x, enemy.y, enemy.sprite);
+                
+                // Health bar
+                const barWidth = 35;
+                const barHeight = 5;
+                const healthPercent = enemy.health / enemy.maxHealth;
+                
+                ctx.fillStyle = '#ff4444';
+                ctx.fillRect(enemy.x - barWidth/2, enemy.y - 35, barWidth * healthPercent, barHeight);
+                ctx.strokeStyle = '#ffffff';
+                ctx.strokeRect(enemy.x - barWidth/2, enemy.y - 35, barWidth, barHeight);
+            });
+        }
+
+        function drawRobloxPlayer(x, y) {
+            // Roblox-style player character
+            const size = 20;
+            
+            // Head (square)
+            ctx.fillStyle = '#ffdbac'; // Skin color
+            ctx.fillRect(x - size/2, y - size*1.8, size, size);
+            
+            // Head outline
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x - size/2, y - size*1.8, size, size);
+            
+            // Body (rectangle)
+            ctx.fillStyle = '#ff6b6b'; // Red shirt
+            ctx.fillRect(x - size*0.6, y - size*0.8, size*1.2, size*1.2);
+            ctx.strokeRect(x - size*0.6, y - size*0.8, size*1.2, size*1.2);
+            
+            // Arms
+            ctx.fillStyle = '#ff6b6b';
+            // Left arm
+            ctx.fillRect(x - size*1.2, y - size*0.6, size*0.6, size);
+            ctx.strokeRect(x - size*1.2, y - size*0.6, size*0.6, size);
+            // Right arm
+            ctx.fillRect(x + size*0.6, y - size*0.6, size*0.6, size);
+            ctx.strokeRect(x + size*0.6, y - size*0.6, size*0.6, size);
+            
+            // Hands
+            ctx.fillStyle = '#ffdbac';
+            ctx.fillRect(x - size*1.2, y + size*0.4, size*0.6, size*0.4);
+            ctx.strokeRect(x - size*1.2, y + size*0.4, size*0.6, size*0.4);
+            ctx.fillRect(x + size*0.6, y + size*0.4, size*0.6, size*0.4);
+            ctx.strokeRect(x + size*0.6, y + size*0.4, size*0.6, size*0.4);
+            
+            // Legs
+            ctx.fillStyle = '#4169e1'; // Blue pants
+            // Left leg
+            ctx.fillRect(x - size*0.4, y + size*0.4, size*0.35, size*1.2);
+            ctx.strokeRect(x - size*0.4, y + size*0.4, size*0.35, size*1.2);
+            // Right leg
+            ctx.fillRect(x + size*0.05, y + size*0.4, size*0.35, size*1.2);
+            ctx.strokeRect(x + size*0.05, y + size*0.4, size*0.35, size*1.2);
+            
+            // Feet
+            ctx.fillStyle = '#000000'; // Black shoes
+            ctx.fillRect(x - size*0.5, y + size*1.6, size*0.45, size*0.3);
+            ctx.strokeRect(x - size*0.5, y + size*1.6, size*0.45, size*0.3);
+            ctx.fillRect(x + size*0.05, y + size*1.6, size*0.45, size*0.3);
+            ctx.strokeRect(x + size*0.05, y + size*1.6, size*0.45, size*0.3);
+            
+            // Face
+            ctx.fillStyle = '#000000';
+            // Eyes
+            ctx.fillRect(x - size*0.25, y - size*1.5, size*0.15, size*0.15);
+            ctx.fillRect(x + size*0.1, y - size*1.5, size*0.15, size*0.15);
+            // Mouth
+            ctx.fillRect(x - size*0.15, y - size*1.1, size*0.3, size*0.1);
+            
+            // Middle finger weapon symbol
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#ffd700';
+            ctx.fillText('🖕', x + size*0.9, y - size*0.3);
+        }
+
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw player (Roblox-style middle finger warrior)
+            drawRobloxPlayer(gameState.player.x, gameState.player.y);
+            
+            // Draw enemies (Roblox-style)
+            gameState.enemies.forEach(enemy => {
+                drawRobloxEnemy(enemy.x, enemy.y, enemy.sprite);
+                
+                // Health bar
+                const barWidth = 35;
+                const barHeight = 5;
+                const healthPercent = enemy.health / enemy.maxHealth;
+                
+                ctx.fillStyle = '#ff4444';
+                ctx.fillRect(enemy.x - barWidth/2, enemy.y - 35, barWidth * healthPercent, barHeight);
+                ctx.strokeStyle = '#ffffff';
+                ctx.strokeRect(enemy.x - barWidth/2, enemy.y - 35, barWidth, barHeight);
+            });
+            
+            // Draw boss if active
+            if (gameState.boss) {
+                drawRobloxBoss(gameState.boss.x, gameState.boss.y);
+            }
+        }
+
+        function drawRobloxPlayer(x, y) {
+            // Roblox-style player character
+            const size = 20;
+            
+            // Head (square)
+            ctx.fillStyle = '#ffdbac'; // Skin color
+            ctx.fillRect(x - size/2, y - size*1.8, size, size);
+            
+            // Head outline
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x - size/2, y - size*1.8, size, size);
+            
+            // Body (rectangle)
+            ctx.fillStyle = '#ff6b6b'; // Red shirt
+            ctx.fillRect(x - size*0.6, y - size*0.8, size*1.2, size*1.2);
+            ctx.strokeRect(x - size*0.6, y - size*0.8, size*1.2, size*1.2);
+            
+            // Arms
+            ctx.fillStyle = '#ff6b6b';
+            // Left arm
+            ctx.fillRect(x - size*1.2, y - size*0.6, size*0.6, size);
+            ctx.strokeRect(x - size*1.2, y - size*0.6, size*0.6, size);
+            // Right arm
+            ctx.fillRect(x + size*0.6, y - size*0.6, size*0.6, size);
+            ctx.strokeRect(x + size*0.6, y - size*0.6, size*0.6, size);
+            
+            // Hands
+            ctx.fillStyle = '#ffdbac';
+            ctx.fillRect(x - size*1.2, y + size*0.4, size*0.6, size*0.4);
+            ctx.strokeRect(x - size*1.2, y + size*0.4, size*0.6, size*0.4);
+            ctx.fillRect(x + size*0.6, y + size*0.4, size*0.6, size*0.4);
+            ctx.strokeRect(x + size*0.6, y + size*0.4, size*0.6, size*0.4);
+            
+            // Legs
+            ctx.fillStyle = '#4169e1'; // Blue pants
+            // Left leg
+            ctx.fillRect(x - size*0.4, y + size*0.4, size*0.35, size*1.2);
+            ctx.strokeRect(x - size*0.4, y + size*0.4, size*0.35, size*1.2);
+            // Right leg
+            ctx.fillRect(x + size*0.05, y + size*0.4, size*0.35, size*1.2);
+            ctx.strokeRect(x + size*0.05, y + size*0.4, size*0.35, size*1.2);
+            
+            // Feet
+            ctx.fillStyle = '#000000'; // Black shoes
+            ctx.fillRect(x - size*0.5, y + size*1.6, size*0.45, size*0.3);
+            ctx.strokeRect(x - size*0.5, y + size*1.6, size*0.45, size*0.3);
+            ctx.fillRect(x + size*0.05, y + size*1.6, size*0.45, size*0.3);
+            ctx.strokeRect(x + size*0.05, y + size*1.6, size*0.45, size*0.3);
+            
+            // Face
+            ctx.fillStyle = '#000000';
+            // Eyes
+            ctx.fillRect(x - size*0.25, y - size*1.5, size*0.15, size*0.15);
+            ctx.fillRect(x + size*0.1, y - size*1.5, size*0.15, size*0.15);
+            // Mouth
+            ctx.fillRect(x - size*0.15, y - size*1.1, size*0.3, size*0.1);
+            
+            // Middle finger weapon symbol
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#ffd700';
+            ctx.fillText('🖕', x + size*0.9, y - size*0.3);
+        }
+
+        function drawRobloxEnemy(x, y, sprite) {
+            const size = 18;
+            
+            // Different enemy types with Roblox style
+            if (sprite === '👺') {
+                // Goblin enemy
+                // Head
+                ctx.fillStyle = '#90EE90'; // Light green
+                ctx.fillRect(x - size/2, y - size*1.6, size, size*0.8);
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 1.5;
+                ctx.strokeRect(x - size/2, y - size*1.6, size, size*0.8);
+                
+                // Body
+                ctx.fillStyle = '#8B4513'; // Brown
+                ctx.fillRect(x - size*0.5, y - size*0.8, size, size);
+                ctx.strokeRect(x - size*0.5, y - size*0.8, size, size);
+                
+                // Arms
+                ctx.fillStyle = '#90EE90';
+                ctx.fillRect(x - size*0.9, y - size*0.6, size*0.4, size*0.8);
+                ctx.strokeRect(x - size*0.9, y - size*0.6, size*0.4, size*0.8);
+                ctx.fillRect(x + size*0.5, y - size*0.6, size*0.4, size*0.8);
+                ctx.strokeRect(x + size*0.5, y - size*0.6, size*0.4, size*0.8);
+                
+                // Legs
+                ctx.fillStyle = '#8B4513';
+                ctx.fillRect(x - size*0.3, y + size*0.2, size*0.25, size*0.8);
+                ctx.strokeRect(x - size*0.3, y + size*0.2, size*0.25, size*0.8);
+                ctx.fillRect(x + size*0.05, y + size*0.2, size*0.25, size*0.8);
+                ctx.strokeRect(x + size*0.05, y + size*0.2, size*0.25, size*0.8);
+                
+                // Evil face
+                ctx.fillStyle = '#FF0000';
+                ctx.fillRect(x - size*0.2, y - size*1.3, size*0.1, size*0.1);
+                ctx.fillRect(x + size*0.1, y - size*1.3, size*0.1, size*0.1);
+                
+                // Weapon
+                ctx.fillStyle = '#8B4513';
+                ctx.fillRect(x + size*0.6, y - size*0.8, size*0.15, size*1.2);
+                ctx.fillStyle = '#C0C0C0';
+                ctx.fillRect(x + size*0.55, y - size*1.2, size*0.25, size*0.4);
+                
+            } else if (sprite === '🧟') {
+                // Zombie enemy
+                ctx.fillStyle = '#9ACD32'; // Yellow green
+                ctx.fillRect(x - size/2, y - size*1.6, size, size*0.8);
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 1.5;
+                ctx.strokeRect(x - size/2, y - size*1.6, size, size*0.8);
+                
+                ctx.fillStyle = '#696969'; // Gray clothes
+                ctx.fillRect(x - size*0.5, y - size*0.8, size, size);
+                ctx.strokeRect(x - size*0.5, y - size*0.8, size, size);
+                
+                // Torn arms
+                ctx.fillStyle = '#9ACD32';
+                ctx.fillRect(x - size*0.9, y - size*0.6, size*0.4, size*0.8);
+                ctx.fillRect(x + size*0.5, y - size*0.6, size*0.4, size*0.8);
+                
+                // Legs
+                ctx.fillStyle = '#696969';
+                ctx.fillRect(x - size*0.3, y + size*0.2, size*0.25, size*0.8);
+                ctx.fillRect(x + size*0.05, y + size*0.2, size*0.25, size*0.8);
+                
+            } else if (sprite === '👻') {
+                // Ghost enemy
+                ctx.fillStyle = '#F0F8FF'; // Alice blue
+                ctx.fillRect(x - size/2, y - size*1.6, size, size*1.2);
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 1.5;
+                ctx.strokeRect(x - size/2, y - size*1.6, size, size*1.2);
+                
+                // Floating effect - no legs
+                ctx.fillStyle = '#E6E6FA';
+                ctx.fillRect(x - size*0.4, y - size*0.4, size*0.8, size*0.6);
+                
+                // Spooky face
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(x - size*0.2, y - size*1.3, size*0.1, size*0.1);
+                ctx.fillRect(x + size*0.1, y - size*1.3, size*0.1, size*0.1);
+                ctx.fillRect(x - size*0.1, y - size*1.0, size*0.2, size*0.1);
+                
+            } else if (sprite === '🐺') {
+                // Wolf enemy
+                ctx.fillStyle = '#8B4513'; // Saddle brown
+                ctx.fillRect(x - size*0.6, y - size*1.2, size*1.2, size*0.6);
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 1.5;
+                ctx.strokeRect(x - size*0.6, y - size*1.2, size*1.2, size*0.6);
+                
+                // Body
+                ctx.fillStyle = '#A0522D';
+                ctx.fillRect(x - size*0.7, y - size*0.6, size*1.4, size*0.8);
+                ctx.strokeRect(x - size*0.7, y - size*0.6, size*1.4, size*0.8);
+                
+                // Legs
+                ctx.fillStyle = '#8B4513';
+                ctx.fillRect(x - size*0.5, y + size*0.2, size*0.2, size*0.6);
+                ctx.fillRect(x - size*0.1, y + size*0.2, size*0.2, size*0.6);
+                ctx.fillRect(x + size*0.3, y + size*0.2, size*0.2, size*0.6);
+                ctx.fillRect(x + size*0.7, y + size*0.2, size*0.2, size*0.6);
+                
+                // Ears
+                ctx.fillStyle = '#8B4513';
+                ctx.fillRect(x - size*0.4, y - size*1.5, size*0.2, size*0.3);
+                ctx.fillRect(x + size*0.2, y - size*1.5, size*0.2, size*0.3);
+            }
+        }
+
+        function drawRobloxBoss(x, y) {
+            const size = 35; // Bigger than regular enemies
+            
+            // Boss - Giant Goblin King
+            // Head (larger)
+            ctx.fillStyle = '#228B22'; // Forest green
+            ctx.fillRect(x - size*0.7, y - size*2.2, size*1.4, size*1.2);
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(x - size*0.7, y - size*2.2, size*1.4, size*1.2);
+            
+            // Crown
+            ctx.fillStyle = '#FFD700'; // Gold
+            ctx.fillRect(x - size*0.8, y - size*2.5, size*1.6, size*0.3);
+            ctx.strokeRect(x - size*0.8, y - size*2.5, size*1.6, size*0.3);
+            // Crown spikes
+            ctx.fillRect(x - size*0.6, y - size*2.8, size*0.2, size*0.3);
+            ctx.fillRect(x - size*0.1, y - size*2.8, size*0.2, size*0.3);
+            ctx.fillRect(x + size*0.4, y - size*2.8, size*0.2, size*0.3);
+            
+            // Body (massive)
+            ctx.fillStyle = '#8B0000'; // Dark red
+            ctx.fillRect(x - size*0.8, y - size*1.0, size*1.6, size*1.6);
+            ctx.strokeRect(x - size*0.8, y - size*1.0, size*1.6, size*1.6);
+            
+            // Arms (muscular)
+            ctx.fillStyle = '#228B22';
+            ctx.fillRect(x - size*1.4, y - size*0.8, size*0.6, size*1.2);
+            ctx.strokeRect(x - size*1.4, y - size*0.8, size*0.6, size*1.2);
+            ctx.fillRect(x + size*0.8, y - size*0.8, size*0.6, size*1.2);
+            ctx.strokeRect(x + size*0.8, y - size*0.8, size*0.6, size*1.2);
+            
+            // Legs (thick)
+            ctx.fillStyle = '#8B0000';
+            ctx.fillRect(x - size*0.5, y + size*0.6, size*0.4, size*1.2);
+            ctx.strokeRect(x - size*0.5, y + size*0.6, size*0.4, size*1.2);
+            ctx.fillRect(x + size*0.1, y + size*0.6, size*0.4, size*1.2);
+            ctx.strokeRect(x + size*0.1, y + size*0.6, size*0.4, size*1.2);
+            
+            // Feet (big)
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(x - size*0.7, y + size*1.8, size*0.6, size*0.3);
+            ctx.strokeRect(x - size*0.7, y + size*1.8, size*0.6, size*0.3);
+            ctx.fillRect(x + size*0.1, y + size*1.8, size*0.6, size*0.3);
+            ctx.strokeRect(x + size*0.1, y + size*1.8, size*0.6, size*0.3);
+            
+            // Evil face
+            ctx.fillStyle = '#FF0000';
+            ctx.fillRect(x - size*0.4, y - size*1.8, size*0.2, size*0.2);
+            ctx.fillRect(x + size*0.2, y - size*1.8, size*0.2, size*0.2);
+            // Evil grin
+            ctx.fillRect(x - size*0.3, y - size*1.4, size*0.6, size*0.15);
+            
+            // Massive weapon
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(x + size*1.2, y - size*1.5, size*0.3, size*2.5);
+            ctx.strokeRect(x + size*1.2, y - size*1.5, size*0.3, size*2.5);
+            ctx.fillStyle = '#C0C0C0';
+            ctx.fillRect(x + size*1.0, y - size*2.0, size*0.7, size*0.8);
+            ctx.strokeRect(x + size*1.0, y - size*2.0, size*0.7, size*0.8);
+        }
+
+        function gameLoop() {
+            if (!gameState.gameStarted) return;
+            
+            updateEnemies();
+            
+            // Regenerate mana
+            if (gameState.player.mana < gameState.player.maxMana) {
+                gameState.player.mana = Math.min(gameState.player.maxMana, gameState.player.mana + 0.4);
+            }
+            
+            render();
+            updateUI();
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Keyboard Controls (backup)
+        document.addEventListener('keydown', (e) => {
+            if (!gameState.gameStarted) return;
+            
+            switch(e.key) {
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    movePlayer('up');
+                    break;
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    movePlayer('down');
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    movePlayer('left');
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    movePlayer('right');
+                    break;
+                case ' ':
+                    playerAttack();
+                    e.preventDefault();
+                    break;
+            }
+        });
+
+        // Initialize
+        updateUI();
+    </script>
+</body>
+</html>

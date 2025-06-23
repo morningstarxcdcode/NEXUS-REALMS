@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔥 NEXUS REALMS - Mind-Blowing Adventure</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: #000;
+            color: #fff;
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        /* Custom Cursor */
+        .cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, #ff0080, #00ff80);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: difference;
+            transition: transform 0.1s;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #ff0080, #0080ff, #80ff00, #ff8000);
+            background-size: 400% 400%;
+            animation: gradientShift 8s ease infinite;
+            opacity: 0.1;
+            z-index: -1;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Particle System */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #fff;
+            animation: float 6s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Epic Header */
+        .hero-section {
+            text-align: center;
+            padding: 100px 0;
+            position: relative;
+        }
+
+        .hero-title {
+            font-family: 'Orbitron', monospace;
+            font-size: clamp(3rem, 8vw, 8rem);
+            font-weight: 900;
+            background: linear-gradient(45deg, #ff0080, #00ff80, #0080ff);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: textGlow 3s ease-in-out infinite alternate;
+            text-shadow: 0 0 50px rgba(255, 0, 128, 0.5);
+            margin-bottom: 20px;
+        }
+
+        @keyframes textGlow {
+            0% { filter: brightness(1) saturate(1); }
+            100% { filter: brightness(1.5) saturate(1.5); }
+        }
+
+        .hero-subtitle {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            animation: fadeInUp 1s ease-out 0.5s both;
+        }
+
+        .hero-description {
+            font-size: 1.3rem;
+            max-width: 800px;
+            margin: 0 auto 50px;
+            line-height: 1.6;
+            opacity: 0.8;
+            animation: fadeInUp 1s ease-out 1s both;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Epic Start Button */
+        .start-button {
+            display: inline-block;
+            padding: 20px 60px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: linear-gradient(45deg, #ff0080, #ff8000);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(255, 0, 128, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 10px 30px rgba(255, 0, 128, 0.3); }
+            50% { box-shadow: 0 15px 40px rgba(255, 0, 128, 0.6); }
+            100% { box-shadow: 0 10px 30px rgba(255, 0, 128, 0.3); }
+        }
+
+        .start-button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 20px 50px rgba(255, 0, 128, 0.6);
+        }
+
+        .start-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .start-button:hover::before {
+            left: 100%;
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 100px 0;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, #ff008050, #00ff8050);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(255, 0, 128, 0.2);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            display: block;
+            position: relative;
+            z-index: 2;
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .feature-description {
+            opacity: 0.8;
+            line-height: 1.6;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Game Demo Section */
+        .demo-section {
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 30px;
+            padding: 50px;
+            margin: 50px 0;
+            border: 2px solid rgba(255, 0, 128, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .demo-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, #ff0080, #00ff80, #0080ff, #ff0080);
+            animation: rotate 10s linear infinite;
+            opacity: 0.1;
+        }
+
+        @keyframes rotate {
+            100% { transform: rotate(360deg); }
+        }
+
+        .demo-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .choice-button {
+            display: block;
+            width: 100%;
+            margin: 15px 0;
+            padding: 25px;
+            background: linear-gradient(45deg, rgba(255, 0, 128, 0.2), rgba(0, 128, 255, 0.2));
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            color: white;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .choice-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .choice-button:hover {
+            transform: translateX(10px);
+            border-color: #ff0080;
+            box-shadow: 0 10px 30px rgba(255, 0, 128, 0.3);
+        }
+
+        .choice-button:hover::before {
+            left: 100%;
+        }
+
+        /* Stats Display */
+        .stats-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 0, 128, 0.3);
+            min-width: 200px;
+        }
+
+        .stat-bar {
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .stat-progress {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .stat-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff0080, #00ff80);
+            transition: width 0.5s ease;
+            border-radius: 4px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 3rem;
+            }
+            
+            .stats-container {
+                position: relative;
+                top: auto;
+                right: auto;
+                margin: 20px 0;
+            }
+            
+            .demo-section {
+                padding: 30px 20px;
+            }
+        }
+
+        /* Hidden class */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Glitch effect for dramatic moments */
+        .glitch {
+            animation: glitch 0.3s;
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Custom Cursor -->
+    <div class="cursor"></div>
+    
+    <!-- Animated Background -->
+    <div class="bg-animation"></div>
+    
+    <!-- Particles -->
+    <div class="particles" id="particles"></div>
+
+    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <h1 class="hero-title">NEXUS REALMS</h1>
+            <h2 class="hero-subtitle">🔥 The Most Addictive Adventure Ever Created</h2>
+            <p class="hero-description">
+                Experience a game that reads your mind, adapts to your choices, and creates a story so personal it feels like it was made just for you. With cutting-edge AI, multiple endings, and graphics that will blow your mind.
+            </p>
+            <button class="start-button" onclick="startDemo()">
+                🚀 START EPIC JOURNEY
+            </button>
+        </section>
+
+        <!-- Features Grid -->
+        <div class="features-grid">
+            <div class="feature-card">
+                <span class="feature-icon">🧠</span>
+                <h3 class="feature-title">AI That Reads You</h3>
+                <p class="feature-description">Advanced emotional AI that adapts to your personality and creates unique experiences based on your choices.</p>
+            </div>
+            
+            <div class="feature-card">
+                <span class="feature-icon">🎭</span>
+                <h3 class="feature-title">5 Mind-Bending Endings</h3>
+                <p class="feature-description">Your choices unlock completely different endings. Hero, villain, or something beyond imagination.</p>
+            </div>
+            
+            <div class="feature-card">
+                <span class="feature-icon">⚡</span>
+                <h3 class="feature-title">Instant Addiction</h3>
+                <p class="feature-description">One choice leads to another. Players report losing hours without realizing it.</p>
+            </div>
+            
+            <div class="feature-card">
+                <span class="feature-icon">🎮</span>
+                <h3 class="feature-title">Zero Download</h3>
+                <p class="feature-description">Runs instantly in your browser with console-quality graphics. No installation needed.</p>
+            </div>
+        </div>
+
+        <!-- Stats Display -->
+        <div class="stats-container">
+            <h4>🎯 Your Journey</h4>
+            <div class="stat-bar">
+                <div class="stat-label">
+                    <span>Power</span>
+                    <span id="powerValue">0</span>
+                </div>
+                <div class="stat-progress">
+                    <div class="stat-fill" id="powerFill" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="stat-bar">
+                <div class="stat-label">
+                    <span>Wisdom</span>
+                    <span id="wisdomValue">0</span>
+                </div>
+                <div class="stat-progress">
+                    <div class="stat-fill" id="wisdomFill" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="stat-bar">
+                <div class="stat-label">
+                    <span>Chaos</span>
+                    <span id="chaosValue">0</span>
+                </div>
+                <div class="stat-progress">
+                    <div class="stat-fill" id="chaosFill" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demo Game Section -->
+        <section class="demo-section hidden" id="gameDemo">
+            <div class="demo-content">
+                <div id="gameContent">
+                    <!-- Game content will be inserted here -->
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Game State
+        let gameState = {
+            power: 0,
+            wisdom: 0,
+            chaos: 0,
+            scene: 0,
+            choices: []
+        };
+
+        // Create particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Custom cursor
+        document.addEventListener('mousemove', (e) => {
+            const cursor = document.querySelector('.cursor');
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+
+        // Game scenes
+        const scenes = [
+            {
+                title: "⚡ THE AWAKENING",
+                text: "Reality tears apart around you. You're falling through dimensions, memories fragmenting like broken glass. In your hand - a photo of someone you loved. Their face is the only thing that feels real.",
+                choices: [
+                    { text: "🔥 Embrace the chaos and let go", power: 10, chaos: 15 },
+                    { text: "🧠 Focus on the memory, hold onto humanity", wisdom: 15, power: 5 },
+                    { text: "⚔️ Fight against the dimensional pull", power: 20, chaos: 5 }
+                ]
+            },
+            {
+                title: "🌟 THE CHOICE OF POWER",
+                text: "A voice echoes from the void: 'You can have unlimited power, but you'll lose your humanity. Or keep your soul and remain weak forever.' The choice will define your destiny.",
+                choices: [
+                    { text: "💀 Take the power, humanity is weakness", power: 25, chaos: 20 },
+                    { text: "❤️ Choose humanity over power", wisdom: 20, power: -5 },
+                    { text: "🌀 Seek a third option - transcendence", wisdom: 15, power: 15, chaos: 10 }
+                ]
+            },
+            {
+                title: "🎭 THE FINAL REVELATION",
+                text: "You discover the truth: this entire reality is a test. Your choices have been watched by beings beyond comprehension. They offer you godhood - but at what cost?",
+                choices: [
+                    { text: "👑 Accept godhood and rule reality", power: 30, chaos: 25 },
+                    { text: "🕊️ Reject power and return to humanity", wisdom: 25 },
+                    { text: "💥 Destroy the test and free everyone", chaos: 30, wisdom: 10 }
+                ]
+            }
+        ];
+
+        function startDemo() {
+            document.querySelector('.hero-section').style.display = 'none';
+            document.querySelector('.features-grid').style.display = 'none';
+            document.getElementById('gameDemo').classList.remove('hidden');
+            showScene(0);
+        }
+
+        function showScene(sceneIndex) {
+            if (sceneIndex >= scenes.length) {
+                showEnding();
+                return;
+            }
+
+            const scene = scenes[sceneIndex];
+            const gameContent = document.getElementById('gameContent');
+            
+            gameContent.innerHTML = `
+                <h2 style="font-size: 2.5rem; margin-bottom: 30px; text-align: center; color: #ff0080;">${scene.title}</h2>
+                <p style="font-size: 1.3rem; line-height: 1.8; margin-bottom: 40px; text-align: center;">${scene.text}</p>
+                <div id="choices">
+                    ${scene.choices.map((choice, index) => `
+                        <button class="choice-button" onclick="makeChoice(${sceneIndex}, ${index})">
+                            ${choice.text}
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+
+            // Add glitch effect
+            gameContent.classList.add('glitch');
+            setTimeout(() => gameContent.classList.remove('glitch'), 300);
+        }
+
+        function makeChoice(sceneIndex, choiceIndex) {
+            const choice = scenes[sceneIndex].choices[choiceIndex];
+            
+            // Update stats
+            gameState.power += choice.power || 0;
+            gameState.wisdom += choice.wisdom || 0;
+            gameState.chaos += choice.chaos || 0;
+            gameState.choices.push(choice.text);
+            
+            // Update display
+            updateStats();
+            
+            // Show next scene
+            setTimeout(() => {
+                showScene(sceneIndex + 1);
+            }, 1000);
+        }
+
+        function updateStats() {
+            document.getElementById('powerValue').textContent = gameState.power;
+            document.getElementById('wisdomValue').textContent = gameState.wisdom;
+            document.getElementById('chaosValue').textContent = gameState.chaos;
+            
+            document.getElementById('powerFill').style.width = Math.min(gameState.power * 2, 100) + '%';
+            document.getElementById('wisdomFill').style.width = Math.min(gameState.wisdom * 2, 100) + '%';
+            document.getElementById('chaosFill').style.width = Math.min(gameState.chaos * 2, 100) + '%';
+        }
+
+        function showEnding() {
+            let ending = '';
+            let endingTitle = '';
+            
+            if (gameState.power > gameState.wisdom && gameState.power > gameState.chaos) {
+                endingTitle = "👑 THE CONQUEROR";
+                ending = "You chose power above all else. Reality bends to your will, but at what cost? You rule over a universe of shadows, alone on your throne of infinite might.";
+            } else if (gameState.wisdom > gameState.power && gameState.wisdom > gameState.chaos) {
+                endingTitle = "🌟 THE ENLIGHTENED";
+                ending = "Wisdom guided your path. You transcend the need for power or chaos, becoming a beacon of hope across all realities. Your choices inspire countless others.";
+            } else if (gameState.chaos > gameState.power && gameState.chaos > gameState.wisdom) {
+                endingTitle = "🌀 THE LIBERATOR";
+                ending = "You chose chaos and freedom. The old order crumbles as you tear down the barriers between realities. In the beautiful anarchy that follows, infinite possibilities bloom.";
+            } else {
+                endingTitle = "⚖️ THE BALANCED";
+                ending = "You found harmony between power, wisdom, and chaos. Your balanced approach creates a new reality where all beings can thrive. You become the bridge between worlds.";
+            }
+            
+            document.getElementById('gameContent').innerHTML = `
+                <div style="text-align: center;">
+                    <h2 style="font-size: 3rem; margin-bottom: 30px; color: #00ff80;">${endingTitle}</h2>
+                    <p style="font-size: 1.4rem; line-height: 1.8; margin-bottom: 40px;">${ending}</p>
+                    <div style="background: rgba(255, 0, 128, 0.1); padding: 30px; border-radius: 20px; margin: 30px 0;">
+                        <h3 style="color: #ff0080; margin-bottom: 20px;">🎯 YOUR FINAL STATS</h3>
+                        <p>Power: ${gameState.power} | Wisdom: ${gameState.wisdom} | Chaos: ${gameState.chaos}</p>
+                        <p style="margin-top: 15px; opacity: 0.8;">You made ${gameState.choices.length} life-changing decisions</p>
+                    </div>
+                    <button class="start-button" onclick="location.reload()" style="margin-top: 30px;">
+                        🔄 PLAY AGAIN WITH DIFFERENT CHOICES
+                    </button>
+                </div>
+            `;
+        }
+
+        // Initialize
+        createParticles();
+        updateStats();
+
+        // Add some dynamic effects
+        setInterval(() => {
+            const particles = document.querySelectorAll('.particle');
+            particles.forEach(particle => {
+                if (Math.random() < 0.1) {
+                    particle.style.background = `hsl(${Math.random() * 360}, 100%, 70%)`;
+                }
+            });
+        }, 2000);
+    </script>
+</body>
+</html>

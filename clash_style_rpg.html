@@ -1,0 +1,1910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏰 NEXUS REALMS - Clash of Clans Style RPG</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Orbitron', monospace;
+            background: linear-gradient(45deg, #0a0a0a, #1a1a2e, #16213e);
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        #gameCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: linear-gradient(135deg, #2c5530 0%, #1a4c1a 100%);
+            border: 3px solid #00ff88;
+            box-shadow: 0 0 50px rgba(0, 255, 136, 0.5);
+        }
+
+        /* Base Building UI */
+        .base-hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            border: 3px solid #ffd700;
+            min-width: 300px;
+            z-index: 100;
+        }
+
+        .resource-display {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .resource-item {
+            text-align: center;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .resource-item:hover {
+            border-color: #ffd700;
+            transform: scale(1.05);
+        }
+
+        .resource-icon {
+            font-size: 24px;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .resource-amount {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .resource-production {
+            font-size: 12px;
+            opacity: 0.8;
+            color: #00ff88;
+        }
+
+        /* Building Menu */
+        .building-menu {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            border: 3px solid #00ff88;
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .building-btn {
+            background: linear-gradient(45deg, #ff0080, #00ff80);
+            border: none;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-size: 12px;
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .building-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(255, 0, 128, 0.4);
+        }
+
+        .building-icon {
+            font-size: 20px;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        /* Army Management */
+        .army-hud {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            border: 3px solid #ff6b6b;
+            min-width: 250px;
+            z-index: 100;
+        }
+
+        .army-slots {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .army-slot {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #666;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .army-slot.filled {
+            border-color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.2);
+        }
+
+        .army-slot:hover {
+            transform: scale(1.1);
+        }
+
+        /* Battle Mode */
+        .battle-hud {
+            position: absolute;
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            border: 3px solid #ff0000;
+            min-width: 200px;
+            z-index: 100;
+        }
+
+        .battle-stats {
+            margin-bottom: 15px;
+        }
+
+        .battle-progress {
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .battle-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff0000, #ff6600);
+            transition: width 0.3s ease;
+        }
+
+        /* Clan System */
+        .clan-hud {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            border: 3px solid #9370db;
+            min-width: 200px;
+            z-index: 100;
+        }
+
+        /* Modal Windows */
+        .modal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            border: 3px solid #ffd700;
+            text-align: center;
+            max-width: 600px;
+            z-index: 1000;
+        }
+
+        .modal-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .modal-item {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid transparent;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-item:hover {
+            border-color: #00ff88;
+            transform: scale(1.05);
+        }
+
+        .control-btn {
+            background: linear-gradient(45deg, #ff0080, #00ff80);
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            margin: 5px;
+        }
+
+        .control-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(255, 0, 128, 0.4);
+        }
+
+        .hidden { display: none; }
+
+        /* Gesture Controls */
+        #webcamContainer {
+            position: absolute;
+            top: 20px;
+            left: 350px;
+            width: 200px;
+            height: 150px;
+            border: 3px solid #00ff88;
+            border-radius: 15px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 100;
+        }
+
+        #webcam {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+
+        .gesture-overlay {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            right: 5px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 5px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-50px); }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Start Screen -->
+    <div class="modal" id="startScreen">
+        <h1 style="font-size: 2.5rem; color: #ffd700; margin-bottom: 20px;">🏰 NEXUS REALMS</h1>
+        <h2 style="color: #ff6b6b; margin-bottom: 20px;">⚔️ CLASH OF CLANS STYLE RPG</h2>
+        
+        <div style="background: rgba(255, 107, 107, 0.1); border: 2px solid #ff6b6b; padding: 20px; border-radius: 15px; margin: 20px 0;">
+            <h3 style="color: #ff6b6b; margin-bottom: 15px;">🎯 Clash of Clans Features:</h3>
+            <p>🏗️ <strong>Build Your Base</strong> - Construct buildings and defenses</p>
+            <p>⚔️ <strong>Train Army</strong> - Recruit troops for battle</p>
+            <p>💎 <strong>Collect Resources</strong> - Gold, Elixir, and Dark Elixir</p>
+            <p>🏰 <strong>Raid Bases</strong> - Attack other players' bases</p>
+            <p>👥 <strong>Join Clans</strong> - Team up with other players</p>
+            <p>🖕 <strong>Middle Finger Control</strong> - Unique gesture controls!</p>
+        </div>
+        
+        <button class="control-btn" onclick="startClashGame()" style="font-size: 16px; padding: 15px 30px;">
+            🏰 START CLASH ADVENTURE
+        </button>
+        <br><br>
+        <button class="control-btn" onclick="enableGestureControl()" style="font-size: 16px; padding: 15px 30px;">
+            🖕 ENABLE GESTURE CONTROL
+        </button>
+    </div>
+
+    <!-- Webcam Container -->
+    <div id="webcamContainer" class="hidden">
+        <video id="webcam" autoplay muted></video>
+        <div class="gesture-overlay" id="gestureOverlay">
+            <span id="currentGesture">🤚 Ready</span>
+        </div>
+    </div>
+
+    <!-- Base Building HUD -->
+    <div class="base-hud hidden" id="baseHUD">
+        <h3 style="color: #ffd700; margin-bottom: 15px;">🏰 Your Base</h3>
+        
+        <div class="resource-display">
+            <div class="resource-item">
+                <span class="resource-icon">💰</span>
+                <div class="resource-amount" id="goldAmount">10000</div>
+                <div class="resource-production">+50/min</div>
+            </div>
+            <div class="resource-item">
+                <span class="resource-icon">⚗️</span>
+                <div class="resource-amount" id="elixirAmount">8000</div>
+                <div class="resource-production">+40/min</div>
+            </div>
+            <div class="resource-item">
+                <span class="resource-icon">🖤</span>
+                <div class="resource-amount" id="darkElixirAmount">500</div>
+                <div class="resource-production">+5/min</div>
+            </div>
+        </div>
+        
+        <div style="border-top: 1px solid rgba(255,255,255,0.2); padding-top: 15px;">
+            <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                <span>🏆 Trophies:</span>
+                <span id="trophyCount" style="color: #ffd700;">1200</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                <span>🏰 Town Hall:</span>
+                <span id="townHallLevel" style="color: #00ff88;">Level 5</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                <span>👥 Clan:</span>
+                <span id="clanName" style="color: #9370db;">Middle Finger Warriors</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Army Management HUD -->
+    <div class="army-hud hidden" id="armyHUD">
+        <h3 style="color: #ff6b6b; margin-bottom: 15px;">⚔️ Army Camps</h3>
+        
+        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+            <span>Army Size:</span>
+            <span><span id="currentArmySize">15</span>/<span id="maxArmySize">200</span></span>
+        </div>
+        
+        <div class="army-slots" id="armySlots">
+            <!-- Army slots will be populated by JavaScript -->
+        </div>
+        
+        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.2);">
+            <button class="control-btn" onclick="openTrainTroops()">🏋️ Train Troops</button>
+            <button class="control-btn" onclick="startBattle()">⚔️ Attack!</button>
+        </div>
+    </div>
+
+    <!-- Battle HUD -->
+    <div class="battle-hud hidden" id="battleHUD">
+        <h3 style="color: #ff0000; margin-bottom: 15px;">⚔️ Battle Progress</h3>
+        
+        <div class="battle-stats">
+            <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                <span>🏆 Stars:</span>
+                <span id="battleStars">0/3</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                <span>💥 Destruction:</span>
+                <span id="destructionPercent">0%</span>
+            </div>
+        </div>
+        
+        <div class="battle-progress">
+            <div class="battle-fill" id="destructionBar" style="width: 0%;"></div>
+        </div>
+        
+        <div style="margin-top: 15px;">
+            <button class="control-btn" onclick="deployTroops()">🪖 Deploy Troops</button>
+            <button class="control-btn" onclick="endBattle()">🏃 Retreat</button>
+        </div>
+    </div>
+
+    <!-- Clan HUD -->
+    <div class="clan-hud hidden" id="clanHUD">
+        <h3 style="color: #9370db; margin-bottom: 15px;">👥 Clan Info</h3>
+        
+        <div style="margin-bottom: 15px;">
+            <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                <span>Members:</span>
+                <span>25/50</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                <span>Clan Level:</span>
+                <span style="color: #ffd700;">12</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                <span>War Wins:</span>
+                <span style="color: #00ff88;">156</span>
+            </div>
+        </div>
+        
+        <button class="control-btn" onclick="openClanWar()">⚔️ Clan War</button>
+        <button class="control-btn" onclick="openClanChat()">💬 Chat</button>
+    </div>
+
+    <!-- Building Menu -->
+    <div class="building-menu hidden" id="buildingMenu">
+        <div class="building-btn" onclick="buildStructure('goldMine')">
+            <span class="building-icon">⛏️</span>
+            Gold Mine<br>
+            <small>500💰</small>
+        </div>
+        <div class="building-btn" onclick="buildStructure('elixirCollector')">
+            <span class="building-icon">⚗️</span>
+            Elixir Pump<br>
+            <small>1000💰</small>
+        </div>
+        <div class="building-btn" onclick="buildStructure('cannon')">
+            <span class="building-icon">💣</span>
+            Cannon<br>
+            <small>2000💰</small>
+        </div>
+        <div class="building-btn" onclick="buildStructure('archerTower')">
+            <span class="building-icon">🏹</span>
+            Archer Tower<br>
+            <small>3000💰</small>
+        </div>
+        <div class="building-btn" onclick="buildStructure('walls')">
+            <span class="building-icon">🧱</span>
+            Walls<br>
+            <small>100💰</small>
+        </div>
+        <div class="building-btn" onclick="buildStructure('barracks')">
+            <span class="building-icon">🏠</span>
+            Barracks<br>
+            <small>5000💰</small>
+        </div>
+    </div>
+
+    <!-- MediaPipe Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1640029074/camera_utils.js"></script>
+    
+    <script>
+        // Clash of Clans Style Game State
+        const gameState = {
+            // Base Resources (like Clash of Clans)
+            resources: {
+                gold: 10000,
+                elixir: 8000,
+                darkElixir: 500,
+                gems: 100
+            },
+            
+            // Base Buildings
+            buildings: {
+                townHall: { level: 5, x: 400, y: 300 },
+                goldMines: [
+                    { level: 3, x: 200, y: 200, production: 50 },
+                    { level: 2, x: 600, y: 200, production: 40 }
+                ],
+                elixirCollectors: [
+                    { level: 3, x: 200, y: 400, production: 40 },
+                    { level: 2, x: 600, y: 400, production: 30 }
+                ],
+                defenses: [
+                    { type: 'cannon', level: 4, x: 300, y: 200, damage: 50, range: 100 },
+                    { type: 'archerTower', level: 3, x: 500, y: 200, damage: 30, range: 120 },
+                    { type: 'mortar', level: 2, x: 400, y: 150, damage: 80, range: 150 }
+                ],
+                walls: [],
+                barracks: [
+                    { level: 5, x: 150, y: 350, capacity: 20 }
+                ]
+            },
+            
+            // Army (like Clash of Clans troops)
+            army: {
+                troops: [
+                    { type: 'barbarian', count: 20, damage: 15, health: 45, housingSpace: 1 },
+                    { type: 'archer', count: 30, damage: 12, health: 20, housingSpace: 1 },
+                    { type: 'giant', count: 3, damage: 40, health: 300, housingSpace: 5 },
+                    { type: 'wizard', count: 10, damage: 35, health: 75, housingSpace: 4 }
+                ],
+                capacity: 200,
+                currentSize: 83
+            },
+            
+            // Player Stats
+            player: {
+                level: 45,
+                xp: 15000,
+                trophies: 1200,
+                clanName: 'Middle Finger Warriors',
+                attacksWon: 156,
+                defensesWon: 89
+            },
+            
+            // Battle State
+            battle: {
+                active: false,
+                stars: 0,
+                destructionPercent: 0,
+                enemyBase: null,
+                deployedTroops: []
+            },
+            
+            // Gesture Control
+            gestureEnabled: false,
+            selectedBuilding: null,
+            buildMode: false,
+            gameStarted: false
+        };
+
+        // Troop Types (Clash of Clans style)
+        const troopTypes = {
+            barbarian: { 
+                name: 'Barbarian', 
+                icon: '🗡️', 
+                damage: 15, 
+                health: 45, 
+                speed: 2, 
+                housingSpace: 1,
+                cost: { elixir: 100 },
+                description: 'Fearless warrior with sword'
+            },
+            archer: { 
+                name: 'Archer', 
+                icon: '🏹', 
+                damage: 12, 
+                health: 20, 
+                speed: 3, 
+                housingSpace: 1,
+                cost: { elixir: 150 },
+                description: 'Ranged attacker with bow'
+            },
+            giant: { 
+                name: 'Giant', 
+                icon: '🦣', 
+                damage: 40, 
+                health: 300, 
+                speed: 1, 
+                housingSpace: 5,
+                cost: { elixir: 2500 },
+                description: 'Massive tank unit'
+            },
+            wizard: { 
+                name: 'Wizard', 
+                icon: '🧙', 
+                damage: 35, 
+                health: 75, 
+                speed: 2, 
+                housingSpace: 4,
+                cost: { elixir: 3500 },
+                description: 'Magic damage dealer'
+            },
+            dragon: { 
+                name: 'Dragon', 
+                icon: '🐉', 
+                damage: 100, 
+                health: 500, 
+                speed: 2, 
+                housingSpace: 20,
+                cost: { elixir: 25000 },
+                description: 'Flying legendary unit'
+            }
+        };
+
+        // Building Types (Clash of Clans style)
+        const buildingTypes = {
+            goldMine: {
+                name: 'Gold Mine',
+                icon: '⛏️',
+                cost: { gold: 500 },
+                production: 50,
+                description: 'Produces gold over time'
+            },
+            elixirCollector: {
+                name: 'Elixir Collector',
+                icon: '⚗️',
+                cost: { gold: 1000 },
+                production: 40,
+                description: 'Produces elixir over time'
+            },
+            cannon: {
+                name: 'Cannon',
+                icon: '💣',
+                cost: { gold: 2000 },
+                damage: 50,
+                range: 100,
+                description: 'Ground defense building'
+            },
+            archerTower: {
+                name: 'Archer Tower',
+                icon: '🏹',
+                cost: { gold: 3000 },
+                damage: 30,
+                range: 120,
+                description: 'Air and ground defense'
+            },
+            walls: {
+                name: 'Walls',
+                icon: '🧱',
+                cost: { gold: 100 },
+                health: 200,
+                description: 'Protects your base'
+            },
+            barracks: {
+                name: 'Barracks',
+                icon: '🏠',
+                cost: { gold: 5000 },
+                capacity: 20,
+                description: 'Train troops here'
+            }
+        };
+
+        // Canvas Setup
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Game Functions
+        function startClashGame() {
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('baseHUD').classList.remove('hidden');
+            document.getElementById('armyHUD').classList.remove('hidden');
+            document.getElementById('clanHUD').classList.remove('hidden');
+            document.getElementById('buildingMenu').classList.remove('hidden');
+            
+            gameState.gameStarted = true;
+            initializeArmySlots();
+            startResourceProduction();
+            gameLoop();
+        }
+
+        function enableGestureControl() {
+            gameState.gestureEnabled = true;
+            document.getElementById('webcamContainer').classList.remove('hidden');
+            initializeHandTracking();
+            
+            if (!gameState.gameStarted) {
+                startClashGame();
+            }
+        }
+
+        // Resource Production (like Clash of Clans)
+        function startResourceProduction() {
+            setInterval(() => {
+                // Gold production from mines
+                gameState.buildings.goldMines.forEach(mine => {
+                    gameState.resources.gold += Math.floor(mine.production / 60); // Per second
+                });
+                
+                // Elixir production from collectors
+                gameState.buildings.elixirCollectors.forEach(collector => {
+                    gameState.resources.elixir += Math.floor(collector.production / 60); // Per second
+                });
+                
+                // Dark elixir production (slower)
+                gameState.resources.darkElixir += 1;
+                
+                updateResourceDisplay();
+            }, 1000); // Update every second
+        }
+
+        // Building System (Clash of Clans style)
+        function buildStructure(buildingType) {
+            const building = buildingTypes[buildingType];
+            if (!building) return;
+            
+            // Check if player has enough resources
+            if (!canAfford(building.cost)) {
+                showMessage('❌ Not enough resources!');
+                return;
+            }
+            
+            // Enter build mode
+            gameState.buildMode = true;
+            gameState.selectedBuilding = buildingType;
+            showMessage(`🏗️ Select location for ${building.name}`);
+            
+            // Change cursor to indicate build mode
+            canvas.style.cursor = 'crosshair';
+        }
+
+        function canAfford(cost) {
+            for (const [resource, amount] of Object.entries(cost)) {
+                if (gameState.resources[resource] < amount) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function placeBuildingAt(x, y) {
+            if (!gameState.buildMode || !gameState.selectedBuilding) return;
+            
+            const buildingType = gameState.selectedBuilding;
+            const building = buildingTypes[buildingType];
+            
+            // Deduct resources
+            for (const [resource, amount] of Object.entries(building.cost)) {
+                gameState.resources[resource] -= amount;
+            }
+            
+            // Add building to base
+            const newBuilding = {
+                type: buildingType,
+                level: 1,
+                x: x,
+                y: y,
+                ...building
+            };
+            
+            // Add to appropriate building array
+            if (buildingType === 'goldMine') {
+                gameState.buildings.goldMines.push(newBuilding);
+            } else if (buildingType === 'elixirCollector') {
+                gameState.buildings.elixirCollectors.push(newBuilding);
+            } else if (['cannon', 'archerTower'].includes(buildingType)) {
+                gameState.buildings.defenses.push(newBuilding);
+            } else if (buildingType === 'barracks') {
+                gameState.buildings.barracks.push(newBuilding);
+            }
+            
+            // Exit build mode
+            gameState.buildMode = false;
+            gameState.selectedBuilding = null;
+            canvas.style.cursor = 'default';
+            
+            showMessage(`✅ ${building.name} built successfully!`);
+            updateResourceDisplay();
+        }
+
+        // Army Management (Clash of Clans style)
+        function initializeArmySlots() {
+            const armySlots = document.getElementById('armySlots');
+            armySlots.innerHTML = '';
+            
+            // Create army slots based on current troops
+            let slotIndex = 0;
+            gameState.army.troops.forEach(troop => {
+                for (let i = 0; i < Math.min(troop.count, 8); i++) { // Max 8 slots per troop type
+                    if (slotIndex >= 20) break; // Max 20 visible slots
+                    
+                    const slot = document.createElement('div');
+                    slot.className = 'army-slot filled';
+                    slot.innerHTML = troopTypes[troop.type].icon;
+                    slot.title = `${troopTypes[troop.type].name} (${troop.count})`;
+                    armySlots.appendChild(slot);
+                    slotIndex++;
+                }
+            });
+            
+            // Fill remaining slots as empty
+            while (slotIndex < 20) {
+                const slot = document.createElement('div');
+                slot.className = 'army-slot';
+                armySlots.appendChild(slot);
+                slotIndex++;
+            }
+        }
+
+        function openTrainTroops() {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <h2 style="color: #ff6b6b; margin-bottom: 20px;">🏋️ Train Troops</h2>
+                <div class="modal-grid">
+                    ${Object.entries(troopTypes).map(([type, troop]) => `
+                        <div class="modal-item" onclick="trainTroop('${type}')">
+                            <div style="font-size: 30px; margin-bottom: 10px;">${troop.icon}</div>
+                            <strong>${troop.name}</strong><br>
+                            <small>💪 ${troop.damage} DMG | ❤️ ${troop.health} HP</small><br>
+                            <small style="color: #00ff88;">Cost: ${Object.entries(troop.cost).map(([res, amt]) => `${amt} ${res}`).join(', ')}</small>
+                        </div>
+                    `).join('')}
+                </div>
+                <button class="control-btn" onclick="this.parentElement.remove()">❌ Close</button>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function trainTroop(troopType) {
+            const troop = troopTypes[troopType];
+            if (!troop) return;
+            
+            // Check if player has enough resources
+            if (!canAfford(troop.cost)) {
+                showMessage('❌ Not enough resources to train this troop!');
+                return;
+            }
+            
+            // Check army capacity
+            if (gameState.army.currentSize + troop.housingSpace > gameState.army.capacity) {
+                showMessage('❌ Army camps are full!');
+                return;
+            }
+            
+            // Deduct resources
+            for (const [resource, amount] of Object.entries(troop.cost)) {
+                gameState.resources[resource] -= amount;
+            }
+            
+            // Add troop to army
+            const existingTroop = gameState.army.troops.find(t => t.type === troopType);
+            if (existingTroop) {
+                existingTroop.count++;
+            } else {
+                gameState.army.troops.push({
+                    type: troopType,
+                    count: 1,
+                    damage: troop.damage,
+                    health: troop.health,
+                    housingSpace: troop.housingSpace
+                });
+            }
+            
+            gameState.army.currentSize += troop.housingSpace;
+            
+            showMessage(`✅ ${troop.name} trained successfully!`);
+            updateResourceDisplay();
+            updateArmyDisplay();
+            initializeArmySlots();
+        }
+
+        // Battle System (Clash of Clans style)
+        function startBattle() {
+            if (gameState.army.currentSize === 0) {
+                showMessage('❌ You need troops to attack!');
+                return;
+            }
+            
+            gameState.battle.active = true;
+            gameState.battle.stars = 0;
+            gameState.battle.destructionPercent = 0;
+            
+            // Generate enemy base
+            generateEnemyBase();
+            
+            // Show battle HUD
+            document.getElementById('battleHUD').classList.remove('hidden');
+            document.getElementById('baseHUD').classList.add('hidden');
+            document.getElementById('buildingMenu').classList.add('hidden');
+            
+            showMessage('⚔️ Battle started! Deploy your troops!');
+        }
+
+        function generateEnemyBase() {
+            // Generate a random enemy base to attack
+            gameState.battle.enemyBase = {
+                buildings: [
+                    { type: 'townHall', x: 400, y: 300, health: 500, maxHealth: 500 },
+                    { type: 'cannon', x: 300, y: 200, health: 200, maxHealth: 200 },
+                    { type: 'archerTower', x: 500, y: 200, health: 150, maxHealth: 150 },
+                    { type: 'goldMine', x: 200, y: 400, health: 100, maxHealth: 100 },
+                    { type: 'elixirCollector', x: 600, y: 400, health: 100, maxHealth: 100 }
+                ],
+                totalHealth: 1050,
+                currentHealth: 1050
+            };
+        }
+
+        function deployTroops() {
+            if (!gameState.battle.active) return;
+            
+            // Deploy troops at random positions around the enemy base
+            gameState.army.troops.forEach(troopGroup => {
+                for (let i = 0; i < Math.min(troopGroup.count, 5); i++) { // Deploy max 5 at a time
+                    const deployedTroop = {
+                        type: troopGroup.type,
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        health: troopGroup.health,
+                        maxHealth: troopGroup.health,
+                        damage: troopGroup.damage,
+                        target: null
+                    };
+                    
+                    gameState.battle.deployedTroops.push(deployedTroop);
+                }
+                
+                // Reduce troop count
+                troopGroup.count = Math.max(0, troopGroup.count - 5);
+            });
+            
+            // Remove empty troop groups
+            gameState.army.troops = gameState.army.troops.filter(troop => troop.count > 0);
+            
+            showMessage('🪖 Troops deployed!');
+            updateArmyDisplay();
+        }
+
+        function endBattle() {
+            if (gameState.battle.isWarAttack) {
+                endWarAttack();
+                return;
+            }
+            
+            gameState.battle.active = false;
+            gameState.battle.deployedTroops = [];
+            
+            // Calculate rewards based on destruction
+            const destructionPercent = gameState.battle.destructionPercent;
+            const goldReward = Math.floor(destructionPercent * 50);
+            const elixirReward = Math.floor(destructionPercent * 40);
+            const trophyChange = gameState.battle.stars * 10 - 5;
+            
+            gameState.resources.gold += goldReward;
+            gameState.resources.elixir += elixirReward;
+            gameState.player.trophies += trophyChange;
+            
+            // Show battle results
+            const resultModal = document.createElement('div');
+            resultModal.className = 'modal';
+            resultModal.innerHTML = `
+                <h2 style="color: ${gameState.battle.stars > 0 ? '#00ff88' : '#ff6b6b'};">
+                    ${gameState.battle.stars > 0 ? '🏆 Victory!' : '💀 Defeat!'}
+                </h2>
+                <div style="margin: 20px 0;">
+                    <div>⭐ Stars: ${gameState.battle.stars}/3</div>
+                    <div>💥 Destruction: ${destructionPercent}%</div>
+                    <div>💰 Gold: +${goldReward}</div>
+                    <div>⚗️ Elixir: +${elixirReward}</div>
+                    <div>🏆 Trophies: ${trophyChange >= 0 ? '+' : ''}${trophyChange}</div>
+                </div>
+                <button class="control-btn" onclick="this.parentElement.remove(); returnToBase();">
+                    🏠 Return to Base
+                </button>
+            `;
+            document.body.appendChild(resultModal);
+        }
+
+        function returnToBase() {
+            document.getElementById('battleHUD').classList.add('hidden');
+            document.getElementById('baseHUD').classList.remove('hidden');
+            document.getElementById('buildingMenu').classList.remove('hidden');
+            
+            updateResourceDisplay();
+            updateArmyDisplay();
+        }
+
+        // Continue with more functions...
+        
+        // Clan War System (Fixed and Functional)
+        const clanWarState = {
+            active: false,
+            phase: 'preparation', // 'preparation', 'battle', 'ended'
+            timeRemaining: 86400000, // 24 hours in milliseconds
+            ourClan: {
+                name: 'Middle Finger Warriors',
+                members: 15,
+                stars: 0,
+                destruction: 0,
+                attacks: []
+            },
+            enemyClan: {
+                name: 'Shadow Destroyers',
+                members: 15,
+                stars: 0,
+                destruction: 0,
+                bases: []
+            },
+            warSize: 15,
+            playerAttacksUsed: 0,
+            maxAttacksPerPlayer: 2
+        };
+
+        function openClanWar() {
+            if (!clanWarState.active) {
+                startNewClanWar();
+            }
+            
+            const timeLeft = formatTime(clanWarState.timeRemaining);
+            const phaseText = getWarPhaseText();
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.maxWidth = '700px';
+            modal.innerHTML = `
+                <h2 style="color: #9370db;">⚔️ Clan War</h2>
+                <div style="margin: 20px 0;">
+                    <div style="background: rgba(147, 112, 219, 0.1); padding: 20px; border-radius: 15px;">
+                        <h3 style="color: #ffd700;">🏰 ${phaseText}</h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 15px 0;">
+                            <!-- Our Clan -->
+                            <div style="background: rgba(0, 255, 136, 0.1); padding: 15px; border-radius: 10px;">
+                                <h4 style="color: #00ff88;">👥 ${clanWarState.ourClan.name}</h4>
+                                <div>⭐ Stars: ${clanWarState.ourClan.stars}/${clanWarState.warSize * 3}</div>
+                                <div>💥 Destruction: ${clanWarState.ourClan.destruction.toFixed(1)}%</div>
+                                <div>👥 Members: ${clanWarState.ourClan.members}</div>
+                            </div>
+                            
+                            <!-- Enemy Clan -->
+                            <div style="background: rgba(255, 107, 107, 0.1); padding: 15px; border-radius: 10px;">
+                                <h4 style="color: #ff6b6b;">👥 ${clanWarState.enemyClan.name}</h4>
+                                <div>⭐ Stars: ${clanWarState.enemyClan.stars}/${clanWarState.warSize * 3}</div>
+                                <div>💥 Destruction: ${clanWarState.enemyClan.destruction.toFixed(1)}%</div>
+                                <div>👥 Members: ${clanWarState.enemyClan.members}</div>
+                            </div>
+                        </div>
+                        
+                        <div style="text-align: center; margin: 15px 0;">
+                            <div style="font-size: 18px; color: #ffd700;">⏰ Time Remaining: ${timeLeft}</div>
+                            <div style="margin-top: 10px;">Your Attacks: ${clanWarState.playerAttacksUsed}/${clanWarState.maxAttacksPerPlayer}</div>
+                        </div>
+                        
+                        <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: center;">
+                            ${clanWarState.phase === 'battle' && clanWarState.playerAttacksUsed < clanWarState.maxAttacksPerPlayer ? 
+                                '<button class="control-btn" onclick="selectWarTarget(this.parentElement.parentElement.parentElement.parentElement)">🎯 Attack Enemy Base</button>' : ''}
+                            <button class="control-btn" onclick="viewWarMap(this.parentElement.parentElement.parentElement.parentElement)">🗺️ War Map</button>
+                            <button class="control-btn" onclick="viewWarLog(this.parentElement.parentElement.parentElement.parentElement)">📜 War Log</button>
+                        </div>
+                    </div>
+                </div>
+                <button class="control-btn" onclick="this.remove()">❌ Close</button>
+            `;
+            document.body.appendChild(modal);
+            
+            // Update war timer
+            updateWarTimer();
+        }
+
+        function startNewClanWar() {
+            clanWarState.active = true;
+            clanWarState.phase = 'preparation';
+            clanWarState.timeRemaining = 86400000; // 24 hours
+            clanWarState.ourClan.stars = 0;
+            clanWarState.ourClan.destruction = 0;
+            clanWarState.enemyClan.stars = Math.floor(Math.random() * 20) + 10; // Random enemy progress
+            clanWarState.enemyClan.destruction = Math.random() * 60 + 20;
+            clanWarState.playerAttacksUsed = 0;
+            
+            // Generate enemy bases
+            generateEnemyWarBases();
+            
+            showMessage('⚔️ New Clan War started! Preparation phase begins!');
+        }
+
+        function generateEnemyWarBases() {
+            clanWarState.enemyClan.bases = [];
+            
+            for (let i = 1; i <= clanWarState.warSize; i++) {
+                const baseStrength = Math.random() * 0.5 + 0.5; // 0.5 to 1.0 strength
+                const base = {
+                    id: i,
+                    playerName: `Enemy${i}`,
+                    townHallLevel: Math.floor(Math.random() * 5) + 3, // TH 3-7
+                    trophies: Math.floor(Math.random() * 1000) + 800,
+                    strength: baseStrength,
+                    attacked: false,
+                    stars: 0,
+                    destruction: 0,
+                    buildings: generateEnemyBaseBuildings(baseStrength)
+                };
+                
+                clanWarState.enemyClan.bases.push(base);
+            }
+            
+            // Sort by strength (strongest first)
+            clanWarState.enemyClan.bases.sort((a, b) => b.strength - a.strength);
+        }
+
+        function generateEnemyBaseBuildings(strength) {
+            const baseBuildings = [
+                { type: 'townHall', x: 400, y: 300, health: Math.floor(500 * strength), maxHealth: Math.floor(500 * strength) },
+                { type: 'cannon', x: 300, y: 200, health: Math.floor(200 * strength), maxHealth: Math.floor(200 * strength) },
+                { type: 'archerTower', x: 500, y: 200, health: Math.floor(150 * strength), maxHealth: Math.floor(150 * strength) },
+                { type: 'cannon', x: 300, y: 400, health: Math.floor(200 * strength), maxHealth: Math.floor(200 * strength) },
+                { type: 'archerTower', x: 500, y: 400, health: Math.floor(150 * strength), maxHealth: Math.floor(150 * strength) }
+            ];
+            
+            // Add more buildings for stronger bases
+            if (strength > 0.7) {
+                baseBuildings.push(
+                    { type: 'mortar', x: 350, y: 150, health: Math.floor(300 * strength), maxHealth: Math.floor(300 * strength) },
+                    { type: 'airDefense', x: 450, y: 150, health: Math.floor(250 * strength), maxHealth: Math.floor(250 * strength) }
+                );
+            }
+            
+            return baseBuildings;
+        }
+
+        function selectWarTarget(modal) {
+            modal.remove();
+            
+            const targetModal = document.createElement('div');
+            targetModal.className = 'modal';
+            targetModal.style.maxWidth = '800px';
+            targetModal.innerHTML = `
+                <h2 style="color: #ff6b6b;">🎯 Select War Target</h2>
+                <div style="max-height: 400px; overflow-y: auto; margin: 20px 0;">
+                    ${clanWarState.enemyClan.bases.map((base, index) => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; margin: 10px 0; background: rgba(255, 255, 255, 0.1); border-radius: 10px; ${base.attacked ? 'opacity: 0.6;' : ''}">
+                            <div>
+                                <strong>#${index + 1} ${base.playerName}</strong><br>
+                                <small>🏰 TH${base.townHallLevel} | 🏆 ${base.trophies} | ${base.attacked ? `⭐ ${base.stars} stars` : 'Not attacked'}</small>
+                            </div>
+                            <div style="text-align: right;">
+                                ${!base.attacked ? 
+                                    `<button class="control-btn" onclick="attackWarBase(${base.id}, this.parentElement.parentElement.parentElement.parentElement)">⚔️ Attack</button>` :
+                                    `<span style="color: #ffd700;">✅ Attacked</span>`
+                                }
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <button class="control-btn" onclick="this.remove(); openClanWar();">← Back to War</button>
+            `;
+            document.body.appendChild(targetModal);
+        }
+
+        function attackWarBase(baseId, modal) {
+            const targetBase = clanWarState.enemyClan.bases.find(base => base.id === baseId);
+            if (!targetBase || targetBase.attacked) {
+                showMessage('❌ This base has already been attacked!');
+                return;
+            }
+            
+            if (clanWarState.playerAttacksUsed >= clanWarState.maxAttacksPerPlayer) {
+                showMessage('❌ You have used all your attacks!');
+                return;
+            }
+            
+            if (gameState.army.currentSize === 0) {
+                showMessage('❌ You need troops to attack!');
+                return;
+            }
+            
+            modal.remove();
+            
+            // Start war attack
+            startWarAttack(targetBase);
+        }
+
+        function startWarAttack(targetBase) {
+            // Set up battle state for war attack
+            gameState.battle.active = true;
+            gameState.battle.isWarAttack = true;
+            gameState.battle.warTarget = targetBase;
+            gameState.battle.stars = 0;
+            gameState.battle.destructionPercent = 0;
+            gameState.battle.enemyBase = {
+                buildings: [...targetBase.buildings], // Copy buildings
+                totalHealth: targetBase.buildings.reduce((sum, b) => sum + b.maxHealth, 0),
+                currentHealth: targetBase.buildings.reduce((sum, b) => sum + b.health, 0)
+            };
+            
+            // Show battle HUD
+            document.getElementById('battleHUD').classList.remove('hidden');
+            document.getElementById('baseHUD').classList.add('hidden');
+            document.getElementById('buildingMenu').classList.add('hidden');
+            
+            showMessage(`⚔️ War attack started against ${targetBase.playerName}!`);
+        }
+
+        function endWarAttack() {
+            if (!gameState.battle.isWarAttack) {
+                endBattle();
+                return;
+            }
+            
+            const targetBase = gameState.battle.warTarget;
+            const stars = gameState.battle.stars;
+            const destruction = gameState.battle.destructionPercent;
+            
+            // Update war target
+            targetBase.attacked = true;
+            targetBase.stars = stars;
+            targetBase.destruction = destruction;
+            
+            // Update clan war stats
+            clanWarState.ourClan.stars += stars;
+            clanWarState.ourClan.destruction += destruction;
+            clanWarState.playerAttacksUsed++;
+            
+            // Calculate rewards
+            const goldReward = Math.floor(destruction * 100 + stars * 50);
+            const elixirReward = Math.floor(destruction * 80 + stars * 40);
+            const darkElixirReward = Math.floor(stars * 5);
+            
+            gameState.resources.gold += goldReward;
+            gameState.resources.elixir += elixirReward;
+            gameState.resources.darkElixir += darkElixirReward;
+            
+            // Show war attack results
+            const resultModal = document.createElement('div');
+            resultModal.className = 'modal';
+            resultModal.innerHTML = `
+                <h2 style="color: ${stars > 0 ? '#00ff88' : '#ff6b6b'};">
+                    ${stars >= 2 ? '🏆 Great Attack!' : stars === 1 ? '⭐ Good Attack!' : '💀 Attack Failed!'}
+                </h2>
+                <div style="margin: 20px 0;">
+                    <h3>War Attack vs ${targetBase.playerName}</h3>
+                    <div style="margin: 15px 0;">
+                        <div>⭐ Stars Earned: ${stars}/3</div>
+                        <div>💥 Destruction: ${destruction}%</div>
+                        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.2);">
+                            <div>💰 Gold: +${goldReward}</div>
+                            <div>⚗️ Elixir: +${elixirReward}</div>
+                            <div>🖤 Dark Elixir: +${darkElixirReward}</div>
+                        </div>
+                    </div>
+                    <div style="background: rgba(147, 112, 219, 0.1); padding: 15px; border-radius: 10px; margin-top: 15px;">
+                        <strong>Clan War Progress:</strong><br>
+                        Our Stars: ${clanWarState.ourClan.stars} | Enemy Stars: ${clanWarState.enemyClan.stars}<br>
+                        Attacks Remaining: ${clanWarState.maxAttacksPerPlayer - clanWarState.playerAttacksUsed}
+                    </div>
+                </div>
+                <button class="control-btn" onclick="this.remove(); returnToBase(); checkWarEnd();">
+                    🏠 Return to Base
+                </button>
+            `;
+            document.body.appendChild(resultModal);
+            
+            // Reset battle state
+            gameState.battle.active = false;
+            gameState.battle.isWarAttack = false;
+            gameState.battle.warTarget = null;
+            gameState.battle.deployedTroops = [];
+        }
+
+        function checkWarEnd() {
+            // Check if war should end
+            if (clanWarState.timeRemaining <= 0 || 
+                (clanWarState.ourClan.stars >= clanWarState.warSize * 3) ||
+                (clanWarState.enemyClan.stars >= clanWarState.warSize * 3)) {
+                endClanWar();
+            }
+        }
+
+        function endClanWar() {
+            clanWarState.phase = 'ended';
+            
+            const ourStars = clanWarState.ourClan.stars;
+            const enemyStars = clanWarState.enemyClan.stars;
+            const victory = ourStars > enemyStars;
+            
+            // Calculate war rewards
+            const warBonus = victory ? 500 : 200;
+            const starBonus = ourStars * 50;
+            
+            gameState.resources.gold += warBonus;
+            gameState.resources.darkElixir += Math.floor(starBonus / 10);
+            
+            const resultModal = document.createElement('div');
+            resultModal.className = 'modal';
+            resultModal.innerHTML = `
+                <h2 style="color: ${victory ? '#00ff88' : '#ff6b6b'};">
+                    ${victory ? '🏆 WAR VICTORY!' : '💀 WAR DEFEAT!'}
+                </h2>
+                <div style="margin: 20px 0;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div style="background: rgba(0, 255, 136, 0.1); padding: 15px; border-radius: 10px;">
+                            <h4 style="color: #00ff88;">👥 ${clanWarState.ourClan.name}</h4>
+                            <div>⭐ Final Stars: ${ourStars}</div>
+                            <div>💥 Total Destruction: ${clanWarState.ourClan.destruction.toFixed(1)}%</div>
+                        </div>
+                        <div style="background: rgba(255, 107, 107, 0.1); padding: 15px; border-radius: 10px;">
+                            <h4 style="color: #ff6b6b;">👥 ${clanWarState.enemyClan.name}</h4>
+                            <div>⭐ Final Stars: ${enemyStars}</div>
+                            <div>💥 Total Destruction: ${clanWarState.enemyClan.destruction.toFixed(1)}%</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px; padding: 15px; background: rgba(255, 215, 0, 0.1); border-radius: 10px;">
+                        <h4 style="color: #ffd700;">🎁 War Rewards:</h4>
+                        <div>💰 War Bonus: +${warBonus} Gold</div>
+                        <div>🖤 Star Bonus: +${Math.floor(starBonus / 10)} Dark Elixir</div>
+                        <div>🏆 War Experience: +${victory ? 50 : 25} XP</div>
+                    </div>
+                </div>
+                <button class="control-btn" onclick="this.remove(); resetClanWar();">
+                    ✅ Collect Rewards
+                </button>
+            `;
+            document.body.appendChild(resultModal);
+        }
+
+        function resetClanWar() {
+            clanWarState.active = false;
+            clanWarState.phase = 'preparation';
+            updateResourceDisplay();
+            showMessage('🏰 War ended! You can start a new war anytime.');
+        }
+
+        function viewWarMap(modal) {
+            modal.remove();
+            
+            const mapModal = document.createElement('div');
+            mapModal.className = 'modal';
+            mapModal.style.maxWidth = '900px';
+            mapModal.innerHTML = `
+                <h2 style="color: #9370db;">🗺️ War Map</h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">
+                    <!-- Our Clan Side -->
+                    <div>
+                        <h3 style="color: #00ff88;">👥 ${clanWarState.ourClan.name}</h3>
+                        <div style="background: rgba(0, 255, 136, 0.1); padding: 15px; border-radius: 10px; max-height: 300px; overflow-y: auto;">
+                            ${Array.from({length: clanWarState.warSize}, (_, i) => `
+                                <div style="padding: 8px; margin: 5px 0; background: rgba(255, 255, 255, 0.1); border-radius: 5px;">
+                                    #${i + 1} ${i === 0 ? 'You' : `Member${i + 1}`} ${i === 0 ? `(${clanWarState.playerAttacksUsed}/2 attacks)` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <!-- Enemy Clan Side -->
+                    <div>
+                        <h3 style="color: #ff6b6b;">👥 ${clanWarState.enemyClan.name}</h3>
+                        <div style="background: rgba(255, 107, 107, 0.1); padding: 15px; border-radius: 10px; max-height: 300px; overflow-y: auto;">
+                            ${clanWarState.enemyClan.bases.map((base, i) => `
+                                <div style="padding: 8px; margin: 5px 0; background: rgba(255, 255, 255, 0.1); border-radius: 5px; ${base.attacked ? 'opacity: 0.7;' : ''}">
+                                    #${i + 1} ${base.playerName} 🏰TH${base.townHallLevel} ${base.attacked ? `⭐${base.stars}` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+                <button class="control-btn" onclick="this.remove(); openClanWar();">← Back to War</button>
+            `;
+            document.body.appendChild(mapModal);
+        }
+
+        function viewWarLog(modal) {
+            modal.remove();
+            
+            const logModal = document.createElement('div');
+            logModal.className = 'modal';
+            logModal.innerHTML = `
+                <h2 style="color: #9370db;">📜 War Log</h2>
+                <div style="max-height: 400px; overflow-y: auto; margin: 20px 0;">
+                    <div style="background: rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 10px; margin: 10px 0;">
+                        <strong>Recent War Attacks:</strong><br><br>
+                        ${clanWarState.enemyClan.bases.filter(base => base.attacked).map(base => `
+                            <div style="margin: 10px 0; padding: 10px; background: rgba(0, 255, 136, 0.1); border-radius: 5px;">
+                                ⚔️ You attacked ${base.playerName}<br>
+                                <small>⭐ ${base.stars} stars | 💥 ${base.destruction}% destruction</small>
+                            </div>
+                        `).join('') || '<div style="opacity: 0.7;">No attacks yet...</div>'}
+                    </div>
+                    
+                    <div style="background: rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 10px; margin: 10px 0;">
+                        <strong>War Statistics:</strong><br><br>
+                        <div>🏆 Wars Won: 156</div>
+                        <div>💀 Wars Lost: 43</div>
+                        <div>⭐ Total Stars: 1,247</div>
+                        <div>🔥 Win Streak: 7</div>
+                    </div>
+                </div>
+                <button class="control-btn" onclick="this.remove(); openClanWar();">← Back to War</button>
+            `;
+            document.body.appendChild(logModal);
+        }
+
+        function updateWarTimer() {
+            if (!clanWarState.active) return;
+            
+            const timer = setInterval(() => {
+                clanWarState.timeRemaining -= 1000;
+                
+                if (clanWarState.timeRemaining <= 0) {
+                    clearInterval(timer);
+                    if (clanWarState.phase === 'preparation') {
+                        clanWarState.phase = 'battle';
+                        clanWarState.timeRemaining = 86400000; // 24 hours for battle
+                        showMessage('⚔️ Battle day has begun! Attack enemy bases!');
+                    } else {
+                        endClanWar();
+                    }
+                }
+                
+                // Switch to battle phase after preparation
+                if (clanWarState.phase === 'preparation' && clanWarState.timeRemaining <= 43200000) { // 12 hours left
+                    clanWarState.phase = 'battle';
+                    showMessage('⚔️ Battle day has begun! Attack enemy bases!');
+                }
+            }, 1000);
+        }
+
+        function getWarPhaseText() {
+            switch (clanWarState.phase) {
+                case 'preparation':
+                    return 'War Status: Preparation Day';
+                case 'battle':
+                    return 'War Status: Battle Day';
+                case 'ended':
+                    return 'War Status: War Ended';
+                default:
+                    return 'War Status: Unknown';
+            }
+        }
+
+        function formatTime(milliseconds) {
+            const hours = Math.floor(milliseconds / (1000 * 60 * 60));
+            const minutes = Math.floor((milliseconds % (1000 * 60 * 60)) / (1000 * 60));
+            return `${hours}h ${minutes}m`;
+        }
+
+        function openClanChat() {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <h2 style="color: #9370db;">💬 Clan Chat</h2>
+                <div style="background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 10px; margin: 20px 0; height: 300px; overflow-y: auto;">
+                    <div style="margin: 10px 0;"><strong>Leader:</strong> Welcome new members! 🎉</div>
+                    <div style="margin: 10px 0;"><strong>Co-Leader:</strong> Great war performance everyone! 💪</div>
+                    <div style="margin: 10px 0;"><strong>Elder:</strong> Need troops for attack, please donate 🙏</div>
+                    <div style="margin: 10px 0;"><strong>Member:</strong> Thanks for the donations! ⚔️</div>
+                    <div style="margin: 10px 0;"><strong>You:</strong> Ready for next clan war! 🔥</div>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" placeholder="Type your message..." style="flex: 1; padding: 10px; border-radius: 5px; border: none;">
+                    <button class="control-btn">📤 Send</button>
+                </div>
+                <button class="control-btn" onclick="this.parentElement.remove()" style="margin-top: 15px;">❌ Close</button>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // Gesture Control Integration
+        let hands, camera;
+        
+        function initializeHandTracking() {
+            const videoElement = document.getElementById('webcam');
+            
+            hands = new Hands({
+                locateFile: (file) => {
+                    return `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/${file}`;
+                }
+            });
+
+            hands.setOptions({
+                maxNumHands: 1,
+                modelComplexity: 1,
+                minDetectionConfidence: 0.8,
+                minTrackingConfidence: 0.7
+            });
+
+            hands.onResults(onHandResults);
+
+            camera = new Camera(videoElement, {
+                onFrame: async () => {
+                    await hands.send({image: videoElement});
+                },
+                width: 200,
+                height: 150
+            });
+
+            camera.start();
+        }
+
+        function onHandResults(results) {
+            if (!gameState.gestureEnabled || !gameState.gameStarted) return;
+            
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                const landmarks = results.multiHandLandmarks[0];
+                const gesture = recognizeGesture(landmarks);
+                handleGesture(gesture, landmarks);
+                updateGestureDisplay(gesture);
+            }
+        }
+
+        function recognizeGesture(landmarks) {
+            const middle_tip = landmarks[12];
+            const middle_pip = landmarks[10];
+            const index_tip = landmarks[8];
+            const index_pip = landmarks[6];
+            
+            // Check if only middle finger is up
+            const middleUp = middle_tip.y < middle_pip.y - 0.02;
+            const indexDown = index_tip.y > index_pip.y + 0.01;
+            
+            if (middleUp && indexDown) {
+                return { type: 'middle_finger', landmarks };
+            }
+            
+            // Check for fist (all fingers down)
+            const allDown = middle_tip.y > middle_pip.y && index_tip.y > index_pip.y;
+            if (allDown) {
+                return { type: 'fist' };
+            }
+            
+            return { type: 'neutral' };
+        }
+
+        function handleGesture(gesture, landmarks) {
+            switch(gesture.type) {
+                case 'middle_finger':
+                    if (landmarks) {
+                        const middle_tip = landmarks[12];
+                        const screenX = (1 - middle_tip.x) * canvas.width; // Mirror X
+                        const screenY = middle_tip.y * canvas.height;
+                        
+                        if (gameState.buildMode) {
+                            // Place building at gesture location
+                            placeBuildingAt(screenX, screenY);
+                        } else if (gameState.battle.active) {
+                            // Deploy troops at gesture location
+                            deployTroopsAt(screenX, screenY);
+                        }
+                    }
+                    break;
+                    
+                case 'fist':
+                    if (gameState.battle.active) {
+                        deployTroops();
+                    }
+                    break;
+            }
+        }
+
+        function deployTroopsAt(x, y) {
+            if (!gameState.battle.active || gameState.army.troops.length === 0) return;
+            
+            // Deploy one troop at the gesture location
+            const troopGroup = gameState.army.troops[0];
+            if (troopGroup.count > 0) {
+                const deployedTroop = {
+                    type: troopGroup.type,
+                    x: x,
+                    y: y,
+                    health: troopGroup.health,
+                    maxHealth: troopGroup.health,
+                    damage: troopGroup.damage,
+                    target: null
+                };
+                
+                gameState.battle.deployedTroops.push(deployedTroop);
+                troopGroup.count--;
+                gameState.army.currentSize -= troopGroup.housingSpace;
+                
+                if (troopGroup.count === 0) {
+                    gameState.army.troops.shift();
+                }
+                
+                updateArmyDisplay();
+            }
+        }
+
+        function updateGestureDisplay(gesture) {
+            const overlay = document.getElementById('gestureOverlay');
+            
+            switch(gesture.type) {
+                case 'middle_finger':
+                    overlay.innerHTML = '<span style="color: #ff6b6b;">🖕 Middle Finger Control</span>';
+                    break;
+                case 'fist':
+                    overlay.innerHTML = '<span style="color: #ffd700;">👊 Deploy Troops</span>';
+                    break;
+                default:
+                    overlay.innerHTML = '<span style="color: #ffffff;">🤚 Ready</span>';
+            }
+        }
+
+        // UI Update Functions
+        function updateResourceDisplay() {
+            document.getElementById('goldAmount').textContent = gameState.resources.gold.toLocaleString();
+            document.getElementById('elixirAmount').textContent = gameState.resources.elixir.toLocaleString();
+            document.getElementById('darkElixirAmount').textContent = gameState.resources.darkElixir.toLocaleString();
+            document.getElementById('trophyCount').textContent = gameState.player.trophies.toLocaleString();
+            document.getElementById('townHallLevel').textContent = `Level ${gameState.buildings.townHall.level}`;
+            document.getElementById('clanName').textContent = gameState.player.clanName;
+        }
+
+        function updateArmyDisplay() {
+            document.getElementById('currentArmySize').textContent = gameState.army.currentSize;
+            document.getElementById('maxArmySize').textContent = gameState.army.capacity;
+        }
+
+        function updateBattleDisplay() {
+            if (!gameState.battle.active) return;
+            
+            document.getElementById('battleStars').textContent = `${gameState.battle.stars}/3`;
+            document.getElementById('destructionPercent').textContent = `${gameState.battle.destructionPercent}%`;
+            document.getElementById('destructionBar').style.width = `${gameState.battle.destructionPercent}%`;
+        }
+
+        // Rendering System
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (gameState.battle.active) {
+                renderBattle();
+            } else {
+                renderBase();
+            }
+        }
+
+        function renderBase() {
+            // Draw base buildings
+            drawBuilding(gameState.buildings.townHall.x, gameState.buildings.townHall.y, '🏰', 'Town Hall');
+            
+            gameState.buildings.goldMines.forEach(mine => {
+                drawBuilding(mine.x, mine.y, '⛏️', 'Gold Mine');
+            });
+            
+            gameState.buildings.elixirCollectors.forEach(collector => {
+                drawBuilding(collector.x, collector.y, '⚗️', 'Elixir Collector');
+            });
+            
+            gameState.buildings.defenses.forEach(defense => {
+                const icon = defense.type === 'cannon' ? '💣' : '🏹';
+                drawBuilding(defense.x, defense.y, icon, defense.type);
+            });
+            
+            gameState.buildings.barracks.forEach(barrack => {
+                drawBuilding(barrack.x, barrack.y, '🏠', 'Barracks');
+            });
+            
+            // Draw build mode indicator
+            if (gameState.buildMode) {
+                ctx.fillStyle = 'rgba(0, 255, 136, 0.3)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = '#00ff88';
+                ctx.font = '24px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('🏗️ BUILD MODE - Use middle finger to place building', canvas.width / 2, 50);
+            }
+        }
+
+        function renderBattle() {
+            // Draw enemy base
+            if (gameState.battle.enemyBase) {
+                gameState.battle.enemyBase.buildings.forEach(building => {
+                    const icon = getBuildingIcon(building.type);
+                    drawBuilding(building.x, building.y, icon, building.type);
+                    
+                    // Draw health bar
+                    const healthPercent = building.health / building.maxHealth;
+                    drawHealthBar(building.x, building.y - 30, healthPercent);
+                });
+            }
+            
+            // Draw deployed troops
+            gameState.battle.deployedTroops.forEach(troop => {
+                drawTroop(troop.x, troop.y, troopTypes[troop.type].icon);
+                
+                // Draw health bar
+                const healthPercent = troop.health / troop.maxHealth;
+                drawHealthBar(troop.x, troop.y - 20, healthPercent);
+            });
+        }
+
+        function drawBuilding(x, y, icon, name) {
+            // Draw building base
+            ctx.fillStyle = 'rgba(139, 69, 19, 0.8)';
+            ctx.fillRect(x - 25, y - 25, 50, 50);
+            ctx.strokeStyle = '#8B4513';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x - 25, y - 25, 50, 50);
+            
+            // Draw building icon
+            ctx.font = '30px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(icon, x, y + 10);
+        }
+
+        function drawTroop(x, y, icon) {
+            ctx.font = '20px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(icon, x, y);
+        }
+
+        function drawHealthBar(x, y, healthPercent) {
+            const barWidth = 30;
+            const barHeight = 4;
+            
+            // Background
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.fillRect(x - barWidth/2, y, barWidth, barHeight);
+            
+            // Health
+            ctx.fillStyle = healthPercent > 0.5 ? '#00ff00' : healthPercent > 0.25 ? '#ffff00' : '#ff0000';
+            ctx.fillRect(x - barWidth/2, y, barWidth * healthPercent, barHeight);
+        }
+
+        function getBuildingIcon(type) {
+            const icons = {
+                townHall: '🏰',
+                cannon: '💣',
+                archerTower: '🏹',
+                goldMine: '⛏️',
+                elixirCollector: '⚗️'
+            };
+            return icons[type] || '🏠';
+        }
+
+        // Utility Functions
+        function showMessage(text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.style.position = 'absolute';
+            messageDiv.style.top = '50%';
+            messageDiv.style.left = '50%';
+            messageDiv.style.transform = 'translate(-50%, -50%)';
+            messageDiv.style.background = 'rgba(0, 0, 0, 0.9)';
+            messageDiv.style.color = '#ffd700';
+            messageDiv.style.padding = '20px 30px';
+            messageDiv.style.borderRadius = '15px';
+            messageDiv.style.border = '2px solid #ffd700';
+            messageDiv.style.fontSize = '18px';
+            messageDiv.style.fontWeight = 'bold';
+            messageDiv.style.textAlign = 'center';
+            messageDiv.style.zIndex = '1000';
+            messageDiv.textContent = text;
+            document.body.appendChild(messageDiv);
+            
+            setTimeout(() => messageDiv.remove(), 3000);
+        }
+
+        // Game Loop
+        function gameLoop() {
+            if (!gameState.gameStarted) return;
+            
+            updateBattleLogic();
+            render();
+            updateBattleDisplay();
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        function updateBattleLogic() {
+            if (!gameState.battle.active) return;
+            
+            // Simple battle simulation
+            gameState.battle.deployedTroops.forEach((troop, troopIndex) => {
+                // Move troops towards nearest building
+                if (gameState.battle.enemyBase && gameState.battle.enemyBase.buildings.length > 0) {
+                    let nearestBuilding = null;
+                    let nearestDistance = Infinity;
+                    
+                    // Find nearest building
+                    gameState.battle.enemyBase.buildings.forEach(building => {
+                        const dx = building.x - troop.x;
+                        const dy = building.y - troop.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < nearestDistance) {
+                            nearestDistance = distance;
+                            nearestBuilding = building;
+                        }
+                    });
+                    
+                    if (nearestBuilding) {
+                        const dx = nearestBuilding.x - troop.x;
+                        const dy = nearestBuilding.y - troop.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance > 30) {
+                            // Move towards building
+                            const speed = troopTypes[troop.type] ? (troopTypes[troop.type].speed || 2) : 2;
+                            troop.x += (dx / distance) * speed;
+                            troop.y += (dy / distance) * speed;
+                        } else {
+                            // Attack building
+                            nearestBuilding.health -= troop.damage;
+                            
+                            if (nearestBuilding.health <= 0) {
+                                // Building destroyed
+                                const buildingIndex = gameState.battle.enemyBase.buildings.indexOf(nearestBuilding);
+                                gameState.battle.enemyBase.buildings.splice(buildingIndex, 1);
+                                
+                                // Update destruction percentage
+                                const totalBuildings = gameState.battle.isWarAttack ? 
+                                    gameState.battle.warTarget.buildings.length : 5;
+                                const destroyedBuildings = totalBuildings - gameState.battle.enemyBase.buildings.length;
+                                gameState.battle.destructionPercent = Math.floor((destroyedBuildings / totalBuildings) * 100);
+                                
+                                // Award stars based on destruction and town hall
+                                if (gameState.battle.destructionPercent >= 50 && gameState.battle.stars === 0) {
+                                    gameState.battle.stars = 1;
+                                    showMessage('⭐ 1 Star! 50% Destruction achieved!');
+                                }
+                                if (gameState.battle.destructionPercent >= 100 && gameState.battle.stars === 1) {
+                                    gameState.battle.stars = 2;
+                                    showMessage('⭐⭐ 2 Stars! 100% Destruction!');
+                                }
+                                if (nearestBuilding.type === 'townHall') {
+                                    gameState.battle.stars = Math.max(gameState.battle.stars, 1);
+                                    if (gameState.battle.destructionPercent >= 50) {
+                                        gameState.battle.stars = Math.max(gameState.battle.stars, 2);
+                                    }
+                                    if (gameState.battle.destructionPercent >= 100) {
+                                        gameState.battle.stars = 3;
+                                        showMessage('⭐⭐⭐ 3 Stars! Perfect Attack!');
+                                    }
+                                }
+                                
+                                // Check for automatic battle end
+                                if (gameState.battle.enemyBase.buildings.length === 0) {
+                                    setTimeout(() => {
+                                        if (gameState.battle.isWarAttack) {
+                                            endWarAttack();
+                                        } else {
+                                            endBattle();
+                                        }
+                                    }, 2000);
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Remove dead troops
+                if (troop.health <= 0) {
+                    gameState.battle.deployedTroops.splice(troopIndex, 1);
+                }
+            });
+            
+            // Enemy defenses attack troops
+            if (gameState.battle.enemyBase) {
+                gameState.battle.enemyBase.buildings.forEach(building => {
+                    if (['cannon', 'archerTower', 'mortar', 'airDefense'].includes(building.type)) {
+                        // Find nearest troop to attack
+                        let nearestTroop = null;
+                        let nearestDistance = Infinity;
+                        const range = building.type === 'mortar' ? 150 : 100;
+                        
+                        gameState.battle.deployedTroops.forEach(troop => {
+                            const dx = troop.x - building.x;
+                            const dy = troop.y - building.y;
+                            const distance = Math.sqrt(dx * dx + dy * dy);
+                            
+                            if (distance < range && distance < nearestDistance) {
+                                nearestDistance = distance;
+                                nearestTroop = troop;
+                            }
+                        });
+                        
+                        if (nearestTroop && Math.random() < 0.1) { // 10% chance to attack per frame
+                            const damage = building.type === 'cannon' ? 25 : 
+                                          building.type === 'archerTower' ? 15 :
+                                          building.type === 'mortar' ? 40 : 20;
+                            nearestTroop.health -= damage;
+                        }
+                    }
+                });
+            }
+        }
+
+        // Canvas Click Handler
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            if (gameState.buildMode) {
+                placeBuildingAt(x, y);
+            } else if (gameState.battle.active) {
+                deployTroopsAt(x, y);
+            }
+        });
+
+        // Initialize
+        updateResourceDisplay();
+        updateArmyDisplay();
+    </script>
+</body>
+</html>

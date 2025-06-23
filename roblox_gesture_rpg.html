@@ -1,0 +1,1495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏰 NEXUS REALMS - Gesture Control RPG</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Orbitron', monospace;
+            background: linear-gradient(45deg, #0a0a0a, #1a1a2e, #16213e);
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        #gameCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: linear-gradient(135deg, #2c5530 0%, #1a4c1a 100%);
+            border: 3px solid #00ff88;
+            box-shadow: 0 0 50px rgba(0, 255, 136, 0.5);
+        }
+
+        /* Webcam Display */
+        #webcamContainer {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 200px;
+            height: 150px;
+            border: 3px solid #00ff88;
+            border-radius: 15px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 100;
+        }
+
+        #webcam {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+
+        .gesture-overlay {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            right: 5px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 5px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* Gesture Status */
+        .gesture-status {
+            position: absolute;
+            top: 180px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #ffd700;
+            min-width: 200px;
+            z-index: 100;
+        }
+
+        .gesture-indicator {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .gesture-icon {
+            font-size: 20px;
+            margin-right: 10px;
+            width: 30px;
+            text-align: center;
+        }
+
+        /* Story Intro */
+        .story-intro {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            border: 3px solid #ffd700;
+            text-align: center;
+            max-width: 600px;
+            z-index: 1000;
+        }
+
+        .story-text {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            color: #e0e0e0;
+        }
+
+        .story-title {
+            font-size: 2.5rem;
+            color: #ffd700;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        /* Character Selection */
+        .character-select {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 40px;
+            border-radius: 20px;
+            border: 3px solid #00ff88;
+            text-align: center;
+            z-index: 1000;
+            max-width: 800px;
+        }
+
+        .character-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .character-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid transparent;
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .character-card:hover {
+            border-color: #00ff88;
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+        }
+
+        .character-avatar {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 15px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            border: 3px solid;
+        }
+
+        .character-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5px;
+            margin-top: 15px;
+            font-size: 12px;
+        }
+
+        .stat-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        /* Game HUD */
+        .game-hud {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #00ff88;
+            backdrop-filter: blur(10px);
+            min-width: 280px;
+            z-index: 100;
+        }
+
+        .level-info {
+            position: absolute;
+            top: 20px;
+            right: 320px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 25px;
+            border-radius: 15px;
+            border: 2px solid #ffd700;
+            text-align: center;
+            z-index: 100;
+        }
+
+        .boss-warning {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 20px;
+            border: 3px solid #ff0000;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            animation: pulse 1s infinite;
+            z-index: 500;
+        }
+
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.05); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        /* Controls */
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #00ff88;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .control-btn {
+            background: linear-gradient(45deg, #ff0080, #00ff80);
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .control-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(255, 0, 128, 0.4);
+        }
+
+        /* Boss Health Bar */
+        .boss-health {
+            position: absolute;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 30px;
+            border-radius: 15px;
+            border: 3px solid #ff0000;
+            min-width: 400px;
+            text-align: center;
+            z-index: 100;
+        }
+
+        .boss-health-bar {
+            width: 100%;
+            height: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .boss-health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff0000, #ff6600);
+            transition: width 0.3s ease;
+        }
+
+        .hidden { display: none; }
+
+        /* Stat Bars */
+        .stat-bar {
+            width: 150px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 5px 0;
+        }
+
+        .stat-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        /* Gesture Tutorial */
+        .gesture-tutorial {
+            position: absolute;
+            bottom: 200px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #00ff88;
+            max-width: 250px;
+            z-index: 100;
+        }
+
+        .tutorial-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+
+        .tutorial-gesture {
+            font-size: 24px;
+            margin-right: 15px;
+            width: 40px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Webcam Container -->
+    <div id="webcamContainer" class="hidden">
+        <video id="webcam" autoplay muted></video>
+        <div class="gesture-overlay" id="gestureOverlay">
+            <span id="currentGesture">🤚 Ready</span>
+        </div>
+    </div>
+
+    <!-- Gesture Status -->
+    <div class="gesture-status hidden" id="gestureStatus">
+        <h4 style="color: #ffd700; margin-bottom: 10px;">🤚 Hand Control</h4>
+        <div class="gesture-indicator">
+            <span class="gesture-icon" id="moveIcon">👆</span>
+            <span id="moveStatus">Point finger to move</span>
+        </div>
+        <div class="gesture-indicator">
+            <span class="gesture-icon" id="attackIcon">👊</span>
+            <span id="attackStatus">Make fist to attack</span>
+        </div>
+        <div class="gesture-indicator">
+            <span class="gesture-icon" id="specialIcon">✋</span>
+            <span id="specialStatus">Open hand for special</span>
+        </div>
+    </div>
+
+    <!-- Gesture Tutorial -->
+    <div class="gesture-tutorial hidden" id="gestureTutorial">
+        <h4 style="color: #00ff88; margin-bottom: 15px;">🎮 Gesture Controls</h4>
+        <div class="tutorial-item">
+            <span class="tutorial-gesture">👆</span>
+            <span>Point finger = Move character</span>
+        </div>
+        <div class="tutorial-item">
+            <span class="tutorial-gesture">👊</span>
+            <span>Closed fist = Attack enemies</span>
+        </div>
+        <div class="tutorial-item">
+            <span class="tutorial-gesture">✋</span>
+            <span>Open hand = Special ability</span>
+        </div>
+        <div class="tutorial-item">
+            <span class="tutorial-gesture">✌️</span>
+            <span>Peace sign = Block/Defend</span>
+        </div>
+    </div>
+
+    <!-- Story Introduction -->
+    <div class="story-intro" id="storyIntro">
+        <h1 class="story-title">🏰 THE NEXUS WARS</h1>
+        <div class="story-text">
+            In the mystical realm of Nexus, five powerful clans have waged war for centuries. 
+            The ancient Crystal of Eternity has shattered into fragments, scattered across dangerous territories.
+            <br><br>
+            You are a young warrior chosen by fate to unite the clans and restore peace. 
+            Control your hero with <strong>hand gestures</strong> or keyboard!
+            <br><br>
+            <strong>Will you become the legendary hero, or will darkness consume everything?</strong>
+        </div>
+        <button class="control-btn" onclick="startCharacterSelection()">🚀 BEGIN YOUR DESTINY</button>
+        <button class="control-btn" onclick="enableGestureControl()" style="margin-left: 10px;">🤚 ENABLE GESTURE CONTROL</button>
+    </div>
+
+    <!-- Character Selection -->
+    <div class="character-select hidden" id="characterSelect">
+        <h2 style="color: #00ff88; margin-bottom: 20px;">Choose Your Champion!</h2>
+        <p style="margin-bottom: 20px; opacity: 0.8;">Control with gestures or keyboard!</p>
+        
+        <div class="character-grid">
+            <!-- Knight -->
+            <div class="character-card" onclick="selectCharacter('knight')">
+                <div class="character-avatar" style="background: #ff6b6b; border-color: #ff6b6b;">
+                    🛡️
+                </div>
+                <h3>Sir Valorian</h3>
+                <p style="font-size: 14px; opacity: 0.8;">The Noble Knight</p>
+                <div class="character-stats">
+                    <div class="stat-item">❤️ HP: 150</div>
+                    <div class="stat-item">⚔️ ATK: 25</div>
+                    <div class="stat-item">🛡️ DEF: 20</div>
+                    <div class="stat-item">⚡ SPD: 3</div>
+                </div>
+                <p style="font-size: 12px; margin-top: 10px; color: #ffd700;">
+                    "Honor above all. Shield Bash special ability."
+                </p>
+            </div>
+
+            <!-- Mage -->
+            <div class="character-card" onclick="selectCharacter('mage')">
+                <div class="character-avatar" style="background: #6a5acd; border-color: #6a5acd;">
+                    🔮
+                </div>
+                <h3>Arcana Mystral</h3>
+                <p style="font-size: 14px; opacity: 0.8;">The Elemental Sorceress</p>
+                <div class="character-stats">
+                    <div class="stat-item">❤️ HP: 80</div>
+                    <div class="stat-item">⚔️ ATK: 35</div>
+                    <div class="stat-item">🛡️ DEF: 8</div>
+                    <div class="stat-item">⚡ SPD: 6</div>
+                </div>
+                <p style="font-size: 12px; margin-top: 10px; color: #ffd700;">
+                    "Magic flows through me. Fireball special ability."
+                </p>
+            </div>
+
+            <!-- Assassin -->
+            <div class="character-card" onclick="selectCharacter('assassin')">
+                <div class="character-avatar" style="background: #228b22; border-color: #228b22;">
+                    🗡️
+                </div>
+                <h3>Shadow Kira</h3>
+                <p style="font-size: 14px; opacity: 0.8;">The Silent Blade</p>
+                <div class="character-stats">
+                    <div class="stat-item">❤️ HP: 100</div>
+                    <div class="stat-item">⚔️ ATK: 30</div>
+                    <div class="stat-item">🛡️ DEF: 12</div>
+                    <div class="stat-item">⚡ SPD: 8</div>
+                </div>
+                <p style="font-size: 12px; margin-top: 10px; color: #ffd700;">
+                    "Strike from shadows. Shadow Strike special ability."
+                </p>
+            </div>
+
+            <!-- Paladin -->
+            <div class="character-card" onclick="selectCharacter('paladin')">
+                <div class="character-avatar" style="background: #ffd700; border-color: #ffd700;">
+                    ⚡
+                </div>
+                <h3>Divine Seraph</h3>
+                <p style="font-size: 14px; opacity: 0.8;">The Holy Warrior</p>
+                <div class="character-stats">
+                    <div class="stat-item">❤️ HP: 120</div>
+                    <div class="stat-item">⚔️ ATK: 22</div>
+                    <div class="stat-item">🛡️ DEF: 18</div>
+                    <div class="stat-item">⚡ SPD: 4</div>
+                </div>
+                <p style="font-size: 12px; margin-top: 10px; color: #ffd700;">
+                    "Light guides my path. Divine Heal special ability."
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game HUD -->
+    <div class="game-hud hidden" id="gameHUD">
+        <h3 style="color: #00ff88; margin-bottom: 15px;">🎮 Hero Status</h3>
+        
+        <div style="margin-bottom: 10px;">
+            <strong id="heroName">Hero</strong> - Level <span id="heroLevel">1</span>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: 8px 0;">
+            <span>❤️ Health:</span>
+            <div class="stat-bar">
+                <div class="stat-fill" id="healthBar" style="width: 100%; background: #ff4444;"></div>
+            </div>
+            <span id="healthText">100/100</span>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: 8px 0;">
+            <span>⚡ Mana:</span>
+            <div class="stat-bar">
+                <div class="stat-fill" id="manaBar" style="width: 100%; background: #4444ff;"></div>
+            </div>
+            <span id="manaText">100/100</span>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: 8px 0;">
+            <span>⭐ XP:</span>
+            <div class="stat-bar">
+                <div class="stat-fill" id="xpBar" style="width: 0%; background: #ffff44;"></div>
+            </div>
+            <span id="xpText">0/100</span>
+        </div>
+        
+        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.2);">
+            <div>💰 Gold: <span id="goldAmount" style="color: #ffd700;">500</span></div>
+            <div>💎 Crystals: <span id="crystalAmount" style="color: #00ffff;">0</span>/5</div>
+        </div>
+    </div>
+
+    <!-- Level Info -->
+    <div class="level-info hidden" id="levelInfo">
+        <h3 id="currentLevel">🏰 Goblin Forest</h3>
+        <p id="levelDescription">Defeat all enemies to face the boss!</p>
+        <div style="margin-top: 10px;">
+            <span>Enemies: </span><span id="enemyCount">5/5</span>
+        </div>
+    </div>
+
+    <!-- Boss Health Bar -->
+    <div class="boss-health hidden" id="bossHealth">
+        <h3 id="bossName">🐉 Boss Name</h3>
+        <div class="boss-health-bar">
+            <div class="boss-health-fill" id="bossHealthFill" style="width: 100%;"></div>
+        </div>
+        <div id="bossHealthText">1000/1000</div>
+    </div>
+
+    <!-- Boss Warning -->
+    <div class="boss-warning hidden" id="bossWarning">
+        <h2>⚠️ BOSS APPROACHING! ⚠️</h2>
+        <p>Prepare for battle!</p>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls hidden" id="gameControls">
+        <button class="control-btn" onclick="movePlayer('up')">⬆️</button>
+        <button class="control-btn" onclick="movePlayer('down')">⬇️</button>
+        <button class="control-btn" onclick="movePlayer('left')">⬅️</button>
+        <button class="control-btn" onclick="movePlayer('right')">➡️</button>
+        <button class="control-btn" onclick="playerAttack()">⚔️ Attack</button>
+        <button class="control-btn" onclick="useSpecial()">✨ Special</button>
+    </div>
+
+    <!-- MediaPipe Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1640029074/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1620248257/drawing_utils.js"></script>
+    
+    <script>
+        // Game State
+        const gameState = {
+            currentLevel: 1,
+            maxLevel: 5,
+            player: {
+                name: '',
+                class: '',
+                x: 400,
+                y: 300,
+                health: 100,
+                maxHealth: 100,
+                mana: 100,
+                maxMana: 100,
+                level: 1,
+                xp: 0,
+                xpToNext: 100,
+                gold: 500,
+                crystals: 0,
+                attack: 20,
+                defense: 10,
+                speed: 5,
+                direction: 'down',
+                isMoving: false,
+                specialCooldown: 0
+            },
+            enemies: [],
+            boss: null,
+            gameStarted: false,
+            bossActive: false,
+            gestureEnabled: false,
+            lastGesture: null,
+            gestureBuffer: [],
+            gestureConfidence: 0
+        };
+
+        // Hand Gesture Recognition
+        let hands, camera;
+        
+        function enableGestureControl() {
+            gameState.gestureEnabled = true;
+            document.getElementById('webcamContainer').classList.remove('hidden');
+            document.getElementById('gestureStatus').classList.remove('hidden');
+            document.getElementById('gestureTutorial').classList.remove('hidden');
+            initializeHandTracking();
+        }
+
+        function initializeHandTracking() {
+            const videoElement = document.getElementById('webcam');
+            
+            hands = new Hands({
+                locateFile: (file) => {
+                    return `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/${file}`;
+                }
+            });
+
+            hands.setOptions({
+                maxNumHands: 1,
+                modelComplexity: 1,
+                minDetectionConfidence: 0.8,
+                minTrackingConfidence: 0.7
+            });
+
+            hands.onResults(onHandResults);
+
+            camera = new Camera(videoElement, {
+                onFrame: async () => {
+                    await hands.send({image: videoElement});
+                },
+                width: 200,
+                height: 150
+            });
+
+            camera.start();
+        }
+
+        function onHandResults(results) {
+            if (!gameState.gestureEnabled || !gameState.gameStarted) return;
+            
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                const landmarks = results.multiHandLandmarks[0];
+                const gesture = recognizeGesture(landmarks);
+                
+                // Smooth gesture recognition with buffer
+                gameState.gestureBuffer.push(gesture);
+                if (gameState.gestureBuffer.length > 5) {
+                    gameState.gestureBuffer.shift();
+                }
+                
+                // Get most common gesture in buffer
+                const mostCommon = getMostCommonGesture(gameState.gestureBuffer);
+                if (mostCommon !== gameState.lastGesture) {
+                    gameState.lastGesture = mostCommon;
+                    handleGesture(mostCommon, landmarks);
+                }
+                
+                updateGestureDisplay(mostCommon);
+            } else {
+                // No hand detected
+                updateGestureDisplay('none');
+            }
+        }
+
+        function recognizeGesture(landmarks) {
+            // Get key finger tip and joint positions
+            const wrist = landmarks[0];
+            const thumb_tip = landmarks[4];
+            const index_tip = landmarks[8];
+            const middle_tip = landmarks[12];
+            const ring_tip = landmarks[16];
+            const pinky_tip = landmarks[20];
+            
+            const thumb_ip = landmarks[3];
+            const index_pip = landmarks[6];
+            const middle_pip = landmarks[10];
+            const ring_pip = landmarks[14];
+            const pinky_pip = landmarks[18];
+
+            // Check if fingers are extended (tip above joint)
+            const fingers_up = [
+                thumb_tip.x > thumb_ip.x, // Thumb (horizontal check)
+                index_tip.y < index_pip.y,    // Index
+                middle_tip.y < middle_pip.y,  // Middle
+                ring_tip.y < ring_pip.y,      // Ring
+                pinky_tip.y < pinky_pip.y     // Pinky
+            ];
+
+            const fingers_count = fingers_up.filter(Boolean).length;
+
+            // Gesture recognition with confidence
+            if (fingers_count === 0) {
+                return { type: 'fist', confidence: 0.9 }; // Attack
+            } else if (fingers_count === 1 && fingers_up[1]) {
+                return { type: 'point', confidence: 0.8, landmarks }; // Move
+            } else if (fingers_count === 5) {
+                return { type: 'open', confidence: 0.7 }; // Special ability
+            } else if (fingers_count === 2 && fingers_up[1] && fingers_up[2]) {
+                return { type: 'peace', confidence: 0.6 }; // Block/Defend
+            } else {
+                return { type: 'neutral', confidence: 0.3 };
+            }
+        }
+
+        function getMostCommonGesture(buffer) {
+            const counts = {};
+            let maxConfidence = 0;
+            let bestGesture = 'neutral';
+            
+            buffer.forEach(gestureObj => {
+                const gesture = gestureObj.type;
+                if (!counts[gesture]) {
+                    counts[gesture] = { count: 0, totalConfidence: 0 };
+                }
+                counts[gesture].count++;
+                counts[gesture].totalConfidence += gestureObj.confidence;
+                
+                const avgConfidence = counts[gesture].totalConfidence / counts[gesture].count;
+                if (counts[gesture].count >= 2 && avgConfidence > maxConfidence) {
+                    maxConfidence = avgConfidence;
+                    bestGesture = gesture;
+                }
+            });
+            
+            gameState.gestureConfidence = maxConfidence;
+            return bestGesture;
+        }
+
+        function handleGesture(gesture, landmarks) {
+            if (!gameState.gameStarted) return;
+
+            switch(gesture) {
+                case 'point':
+                    // Move based on finger direction
+                    if (landmarks && landmarks.landmarks) {
+                        const index_tip = landmarks.landmarks[8];
+                        const wrist = landmarks.landmarks[0];
+                        
+                        // Calculate direction from wrist to finger tip
+                        const deltaX = index_tip.x - wrist.x;
+                        const deltaY = index_tip.y - wrist.y;
+                        
+                        // Determine movement direction
+                        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                            if (deltaX > 0.05) {
+                                movePlayer('right');
+                            } else if (deltaX < -0.05) {
+                                movePlayer('left');
+                            }
+                        } else {
+                            if (deltaY > 0.05) {
+                                movePlayer('down');
+                            } else if (deltaY < -0.05) {
+                                movePlayer('up');
+                            }
+                        }
+                    }
+                    break;
+                    
+                case 'fist':
+                    playerAttack();
+                    break;
+                    
+                case 'open':
+                    useSpecial();
+                    break;
+                    
+                case 'peace':
+                    // Block/Defend (future feature)
+                    break;
+            }
+        }
+
+        function updateGestureDisplay(gesture) {
+            const overlay = document.getElementById('gestureOverlay');
+            const currentGesture = document.getElementById('currentGesture');
+            const moveIcon = document.getElementById('moveIcon');
+            const attackIcon = document.getElementById('attackIcon');
+            const specialIcon = document.getElementById('specialIcon');
+            const moveStatus = document.getElementById('moveStatus');
+            const attackStatus = document.getElementById('attackStatus');
+            const specialStatus = document.getElementById('specialStatus');
+            
+            // Reset all icons
+            moveIcon.style.color = '#666';
+            attackIcon.style.color = '#666';
+            specialIcon.style.color = '#666';
+            
+            switch(gesture) {
+                case 'point':
+                    currentGesture.textContent = '👆 Moving';
+                    currentGesture.style.color = '#00ff88';
+                    moveIcon.style.color = '#00ff88';
+                    moveStatus.textContent = 'Moving character';
+                    break;
+                case 'fist':
+                    currentGesture.textContent = '👊 Attacking';
+                    currentGesture.style.color = '#ff4444';
+                    attackIcon.style.color = '#ff4444';
+                    attackStatus.textContent = 'Attacking enemies!';
+                    break;
+                case 'open':
+                    currentGesture.textContent = '✋ Special';
+                    currentGesture.style.color = '#ffd700';
+                    specialIcon.style.color = '#ffd700';
+                    specialStatus.textContent = 'Using special ability';
+                    break;
+                case 'peace':
+                    currentGesture.textContent = '✌️ Defending';
+                    currentGesture.style.color = '#4444ff';
+                    break;
+                case 'none':
+                    currentGesture.textContent = '❌ No Hand';
+                    currentGesture.style.color = '#ff6666';
+                    moveStatus.textContent = 'Show hand to control';
+                    attackStatus.textContent = 'Make fist to attack';
+                    specialStatus.textContent = 'Open hand for special';
+                    break;
+                default:
+                    currentGesture.textContent = '🤚 Ready';
+                    currentGesture.style.color = '#ffffff';
+                    moveStatus.textContent = 'Point finger to move';
+                    attackStatus.textContent = 'Make fist to attack';
+                    specialStatus.textContent = 'Open hand for special';
+            }
+            
+            // Show confidence level
+            if (gameState.gestureConfidence > 0) {
+                overlay.style.background = `rgba(0, ${Math.floor(gameState.gestureConfidence * 255)}, 0, 0.8)`;
+            }
+        }
+
+        // Character Data
+        const characterData = {
+            knight: {
+                name: 'Sir Valorian',
+                health: 150, attack: 25, defense: 20, speed: 3, mana: 80,
+                color: '#ff6b6b', weapon: '🛡️',
+                special: 'Shield Bash', specialCost: 20
+            },
+            mage: {
+                name: 'Arcana Mystral',
+                health: 80, attack: 35, defense: 8, speed: 6, mana: 150,
+                color: '#6a5acd', weapon: '🔮',
+                special: 'Fireball', specialCost: 25
+            },
+            assassin: {
+                name: 'Shadow Kira',
+                health: 100, attack: 30, defense: 12, speed: 8, mana: 100,
+                color: '#228b22', weapon: '🗡️',
+                special: 'Shadow Strike', specialCost: 15
+            },
+            paladin: {
+                name: 'Divine Seraph',
+                health: 120, attack: 22, defense: 18, speed: 4, mana: 120,
+                color: '#ffd700', weapon: '⚡',
+                special: 'Divine Heal', specialCost: 30
+            }
+        };
+
+        // Canvas Setup
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Game Functions
+        function startCharacterSelection() {
+            document.getElementById('storyIntro').classList.add('hidden');
+            document.getElementById('characterSelect').classList.remove('hidden');
+        }
+
+        function selectCharacter(characterType) {
+            const charData = characterData[characterType];
+            
+            // Set player stats
+            gameState.player.name = charData.name;
+            gameState.player.class = characterType;
+            gameState.player.maxHealth = charData.health;
+            gameState.player.health = charData.health;
+            gameState.player.maxMana = charData.mana;
+            gameState.player.mana = charData.mana;
+            gameState.player.attack = charData.attack;
+            gameState.player.defense = charData.defense;
+            gameState.player.speed = charData.speed;
+            
+            // Update UI
+            document.getElementById('heroName').textContent = charData.name;
+            
+            // Start game
+            document.getElementById('characterSelect').classList.add('hidden');
+            document.getElementById('gameHUD').classList.remove('hidden');
+            document.getElementById('levelInfo').classList.remove('hidden');
+            document.getElementById('gameControls').classList.remove('hidden');
+            
+            gameState.gameStarted = true;
+            startLevel(1);
+            gameLoop();
+        }
+
+        // Movement System
+        function movePlayer(direction) {
+            if (!gameState.gameStarted) return;
+            
+            const speed = gameState.player.speed;
+            gameState.player.direction = direction;
+            gameState.player.isMoving = true;
+            
+            switch(direction) {
+                case 'up':
+                    gameState.player.y = Math.max(40, gameState.player.y - speed * 3);
+                    break;
+                case 'down':
+                    gameState.player.y = Math.min(canvas.height - 40, gameState.player.y + speed * 3);
+                    break;
+                case 'left':
+                    gameState.player.x = Math.max(40, gameState.player.x - speed * 3);
+                    break;
+                case 'right':
+                    gameState.player.x = Math.min(canvas.width - 40, gameState.player.x + speed * 3);
+                    break;
+            }
+        }
+
+        // Combat System
+        function playerAttack() {
+            if (gameState.player.mana < 10) return;
+            
+            gameState.player.mana -= 10;
+            let targetHit = false;
+            
+            // Attack enemies
+            gameState.enemies.forEach((enemy, index) => {
+                const distance = getDistance(gameState.player, enemy);
+                if (distance < 80) {
+                    const damage = calculateDamage(gameState.player.attack, 0);
+                    enemy.health -= damage;
+                    createDamageEffect(enemy.x, enemy.y, damage, '#ff4444');
+                    targetHit = true;
+                    
+                    if (enemy.health <= 0) {
+                        gameState.player.gold += enemy.gold;
+                        gameState.player.xp += 20;
+                        gameState.enemies.splice(index, 1);
+                        checkLevelUp();
+                        
+                        if (gameState.enemies.length === 0 && !gameState.bossActive) {
+                            setTimeout(() => spawnBoss(), 1000);
+                        }
+                    }
+                }
+            });
+            
+            // Attack boss
+            if (gameState.boss) {
+                const distance = getDistance(gameState.player, gameState.boss);
+                if (distance < 100) {
+                    const damage = calculateDamage(gameState.player.attack, gameState.boss.defense);
+                    gameState.boss.health -= damage;
+                    createDamageEffect(gameState.boss.x, gameState.boss.y, damage, '#ff4444');
+                    targetHit = true;
+                    
+                    if (gameState.boss.health <= 0) {
+                        defeatBoss();
+                    }
+                }
+            }
+            
+            if (targetHit) {
+                createAttackEffect(gameState.player.x, gameState.player.y);
+            }
+        }
+
+        function useSpecial() {
+            const charData = characterData[gameState.player.class];
+            if (gameState.player.mana < charData.specialCost) return;
+            if (gameState.player.specialCooldown > 0) return;
+            
+            gameState.player.mana -= charData.specialCost;
+            gameState.player.specialCooldown = 300; // 5 second cooldown
+            
+            switch(gameState.player.class) {
+                case 'knight':
+                    // Shield Bash - stuns nearby enemies
+                    gameState.enemies.forEach(enemy => {
+                        const distance = getDistance(gameState.player, enemy);
+                        if (distance < 120) {
+                            const damage = gameState.player.attack * 1.5;
+                            enemy.health -= damage;
+                            enemy.stunned = 120;
+                            createDamageEffect(enemy.x, enemy.y, damage, '#ffd700');
+                        }
+                    });
+                    break;
+                    
+                case 'mage':
+                    // Fireball - area damage
+                    const fireballDamage = gameState.player.attack * 2;
+                    gameState.enemies.forEach(enemy => {
+                        const distance = getDistance(gameState.player, enemy);
+                        if (distance < 150) {
+                            enemy.health -= fireballDamage;
+                            createDamageEffect(enemy.x, enemy.y, fireballDamage, '#ff6600');
+                        }
+                    });
+                    break;
+                    
+                case 'assassin':
+                    // Shadow Strike - teleport and critical hit
+                    if (gameState.enemies.length > 0) {
+                        const target = gameState.enemies[0];
+                        gameState.player.x = target.x + 30;
+                        gameState.player.y = target.y + 30;
+                        const critDamage = gameState.player.attack * 3;
+                        target.health -= critDamage;
+                        createDamageEffect(target.x, target.y, critDamage, '#00ff00');
+                    }
+                    break;
+                    
+                case 'paladin':
+                    // Divine Heal - restore health
+                    const healAmount = gameState.player.maxHealth * 0.4;
+                    gameState.player.health = Math.min(gameState.player.maxHealth, gameState.player.health + healAmount);
+                    createDamageEffect(gameState.player.x, gameState.player.y, healAmount, '#00ff88');
+                    break;
+            }
+            
+            createSpecialEffect(gameState.player.x, gameState.player.y);
+        }
+
+        // Continue with more functions...
+        
+        // Level Data and Enemy System
+        const levelData = {
+            1: {
+                name: "🌲 Goblin Forest",
+                description: "Dark woods filled with mischievous goblins",
+                background: '#2c5530',
+                enemies: [
+                    { type: 'goblin', count: 3, health: 40, attack: 8, speed: 2, sprite: '👺', gold: 25 },
+                    { type: 'wolf', count: 2, health: 60, attack: 12, speed: 3, sprite: '🐺', gold: 35 }
+                ],
+                boss: {
+                    name: 'Goblin King Grax', sprite: '👹', health: 300, attack: 20, defense: 8, speed: 2,
+                    special: 'Rage Roar', gold: 200, crystal: true
+                }
+            }
+        };
+
+        function startLevel(levelNum) {
+            gameState.currentLevel = levelNum;
+            const level = levelData[levelNum];
+            
+            document.getElementById('currentLevel').textContent = level.name;
+            document.getElementById('levelDescription').textContent = level.description;
+            
+            canvas.style.background = `linear-gradient(135deg, ${level.background}, ${adjustColor(level.background, -20)})`;
+            
+            spawnLevelEnemies(level);
+        }
+
+        function spawnLevelEnemies(level) {
+            gameState.enemies = [];
+            
+            level.enemies.forEach(enemyType => {
+                for (let i = 0; i < enemyType.count; i++) {
+                    gameState.enemies.push({
+                        x: Math.random() * (canvas.width - 100) + 50,
+                        y: Math.random() * (canvas.height - 100) + 50,
+                        health: enemyType.health,
+                        maxHealth: enemyType.health,
+                        attack: enemyType.attack,
+                        speed: enemyType.speed,
+                        sprite: enemyType.sprite,
+                        gold: enemyType.gold,
+                        type: enemyType.type,
+                        lastAttack: 0
+                    });
+                }
+            });
+        }
+
+        function spawnBoss() {
+            const level = levelData[gameState.currentLevel];
+            const bossData = level.boss;
+            
+            gameState.boss = {
+                x: canvas.width / 2,
+                y: canvas.height / 2,
+                health: bossData.health,
+                maxHealth: bossData.health,
+                attack: bossData.attack,
+                defense: bossData.defense,
+                speed: bossData.speed,
+                sprite: bossData.sprite,
+                name: bossData.name,
+                special: bossData.special,
+                gold: bossData.gold,
+                crystal: bossData.crystal,
+                lastAttack: 0,
+                lastSpecial: 0
+            };
+            
+            gameState.bossActive = true;
+            
+            document.getElementById('bossWarning').classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('bossWarning').classList.add('hidden');
+                document.getElementById('bossHealth').classList.remove('hidden');
+                updateBossHealth();
+            }, 3000);
+        }
+
+        function defeatBoss() {
+            const boss = gameState.boss;
+            gameState.player.gold += boss.gold;
+            gameState.player.xp += 100;
+            
+            if (boss.crystal) {
+                gameState.player.crystals++;
+            }
+            
+            checkLevelUp();
+            document.getElementById('bossHealth').classList.add('hidden');
+            
+            showMessage(`${boss.name} defeated! Crystal fragment obtained!`);
+            
+            // Show ending for demo
+            setTimeout(() => {
+                showEnding();
+            }, 3000);
+        }
+
+        // Enemy AI
+        function updateEnemies() {
+            gameState.enemies.forEach(enemy => {
+                if (enemy.stunned > 0) {
+                    enemy.stunned--;
+                    return;
+                }
+                
+                const dx = gameState.player.x - enemy.x;
+                const dy = gameState.player.y - enemy.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance > 0) {
+                    enemy.x += (dx / distance) * enemy.speed;
+                    enemy.y += (dy / distance) * enemy.speed;
+                }
+                
+                if (distance < 50 && Date.now() - enemy.lastAttack > 1500) {
+                    const damage = calculateDamage(enemy.attack, gameState.player.defense);
+                    gameState.player.health -= damage;
+                    enemy.lastAttack = Date.now();
+                    
+                    createDamageEffect(gameState.player.x, gameState.player.y, damage, '#ff0000');
+                    
+                    if (gameState.player.health <= 0) {
+                        gameOver();
+                    }
+                }
+            });
+        }
+
+        function updateBoss() {
+            if (!gameState.boss) return;
+            
+            const boss = gameState.boss;
+            const dx = gameState.player.x - boss.x;
+            const dy = gameState.player.y - boss.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance > 80) {
+                boss.x += (dx / distance) * boss.speed;
+                boss.y += (dy / distance) * boss.speed;
+            }
+            
+            if (Date.now() - boss.lastAttack > 2000) {
+                if (distance < 100) {
+                    const damage = calculateDamage(boss.attack, gameState.player.defense);
+                    gameState.player.health -= damage;
+                    boss.lastAttack = Date.now();
+                    
+                    createDamageEffect(gameState.player.x, gameState.player.y, damage, '#ff0000');
+                    
+                    if (gameState.player.health <= 0) {
+                        gameOver();
+                    }
+                }
+            }
+            
+            updateBossHealth();
+        }
+
+        // Utility Functions
+        function getDistance(obj1, obj2) {
+            return Math.sqrt(Math.pow(obj1.x - obj2.x, 2) + Math.pow(obj1.y - obj2.y, 2));
+        }
+
+        function calculateDamage(attack, defense) {
+            return Math.max(1, attack - defense + Math.floor(Math.random() * 10));
+        }
+
+        function checkLevelUp() {
+            if (gameState.player.xp >= gameState.player.xpToNext) {
+                gameState.player.level++;
+                gameState.player.xp -= gameState.player.xpToNext;
+                gameState.player.xpToNext = Math.floor(gameState.player.xpToNext * 1.4);
+                
+                gameState.player.maxHealth += 25;
+                gameState.player.health = gameState.player.maxHealth;
+                gameState.player.maxMana += 15;
+                gameState.player.mana = gameState.player.maxMana;
+                gameState.player.attack += 3;
+                gameState.player.defense += 2;
+                
+                showMessage("LEVEL UP! Stats increased!");
+            }
+        }
+
+        function createDamageEffect(x, y, damage, color) {
+            const damageDiv = document.createElement('div');
+            damageDiv.style.position = 'absolute';
+            damageDiv.style.left = x + 'px';
+            damageDiv.style.top = y + 'px';
+            damageDiv.style.color = color;
+            damageDiv.style.fontSize = '20px';
+            damageDiv.style.fontWeight = 'bold';
+            damageDiv.style.pointerEvents = 'none';
+            damageDiv.style.animation = 'floatUp 1s ease-out forwards';
+            damageDiv.textContent = `-${damage}`;
+            document.body.appendChild(damageDiv);
+            
+            setTimeout(() => damageDiv.remove(), 1000);
+        }
+
+        function createAttackEffect(x, y) {
+            for (let i = 0; i < 6; i++) {
+                const particle = document.createElement('div');
+                particle.style.position = 'absolute';
+                particle.style.left = (x + Math.random() * 40 - 20) + 'px';
+                particle.style.top = (y + Math.random() * 40 - 20) + 'px';
+                particle.style.width = '6px';
+                particle.style.height = '6px';
+                particle.style.background = '#ffff00';
+                particle.style.borderRadius = '50%';
+                particle.style.pointerEvents = 'none';
+                particle.style.animation = 'particle 0.5s ease-out forwards';
+                document.body.appendChild(particle);
+                
+                setTimeout(() => particle.remove(), 500);
+            }
+        }
+
+        function createSpecialEffect(x, y) {
+            const effect = document.createElement('div');
+            effect.style.position = 'absolute';
+            effect.style.left = (x - 25) + 'px';
+            effect.style.top = (y - 25) + 'px';
+            effect.style.width = '50px';
+            effect.style.height = '50px';
+            effect.style.border = '3px solid #00ff88';
+            effect.style.borderRadius = '50%';
+            effect.style.pointerEvents = 'none';
+            effect.style.animation = 'pulse 0.5s ease-out forwards';
+            document.body.appendChild(effect);
+            
+            setTimeout(() => effect.remove(), 500);
+        }
+
+        function showMessage(text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.style.position = 'absolute';
+            messageDiv.style.top = '50%';
+            messageDiv.style.left = '50%';
+            messageDiv.style.transform = 'translate(-50%, -50%)';
+            messageDiv.style.background = 'rgba(0, 0, 0, 0.9)';
+            messageDiv.style.color = '#ffd700';
+            messageDiv.style.padding = '20px 30px';
+            messageDiv.style.borderRadius = '15px';
+            messageDiv.style.border = '2px solid #ffd700';
+            messageDiv.style.fontSize = '18px';
+            messageDiv.style.fontWeight = 'bold';
+            messageDiv.style.textAlign = 'center';
+            messageDiv.style.zIndex = '1000';
+            messageDiv.textContent = text;
+            document.body.appendChild(messageDiv);
+            
+            setTimeout(() => messageDiv.remove(), 3000);
+        }
+
+        function showEnding() {
+            const endingHTML = `
+                <div class="story-intro">
+                    <h1 class="story-title">🏆 VICTORY!</h1>
+                    <div class="story-text">
+                        Congratulations! You have defeated the Goblin King and obtained your first crystal fragment!
+                        <br><br>
+                        <strong>Your Stats:</strong><br>
+                        Level: ${gameState.player.level}<br>
+                        Gold: ${gameState.player.gold}<br>
+                        Crystals: ${gameState.player.crystals}/5<br>
+                        Character: ${gameState.player.name}
+                        <br><br>
+                        This is a demo of the gesture control system. The full game would continue with 4 more epic levels!
+                    </div>
+                    <button class="control-btn" onclick="location.reload()">🔄 Play Again</button>
+                </div>
+            `;
+            
+            document.body.innerHTML += endingHTML;
+        }
+
+        function updateBossHealth() {
+            if (!gameState.boss) return;
+            
+            const healthPercent = (gameState.boss.health / gameState.boss.maxHealth) * 100;
+            document.getElementById('bossHealthFill').style.width = healthPercent + '%';
+            document.getElementById('bossHealthText').textContent = `${gameState.boss.health}/${gameState.boss.maxHealth}`;
+            document.getElementById('bossName').textContent = gameState.boss.name;
+        }
+
+        function updateUI() {
+            const player = gameState.player;
+            
+            const healthPercent = (player.health / player.maxHealth) * 100;
+            document.getElementById('healthBar').style.width = healthPercent + '%';
+            document.getElementById('healthText').textContent = `${player.health}/${player.maxHealth}`;
+            
+            const manaPercent = (player.mana / player.maxMana) * 100;
+            document.getElementById('manaBar').style.width = manaPercent + '%';
+            document.getElementById('manaText').textContent = `${player.mana}/${player.maxMana}`;
+            
+            const xpPercent = (player.xp / player.xpToNext) * 100;
+            document.getElementById('xpBar').style.width = xpPercent + '%';
+            document.getElementById('xpText').textContent = `${player.xp}/${player.xpToNext}`;
+            
+            document.getElementById('goldAmount').textContent = player.gold;
+            document.getElementById('crystalAmount').textContent = player.crystals;
+            document.getElementById('heroLevel').textContent = player.level;
+        }
+
+        // Rendering
+        function drawRobloxCharacter(x, y, color, weapon, size = 30) {
+            ctx.fillStyle = color;
+            
+            // Body
+            ctx.fillRect(x - size/3, y - size/4, size*2/3, size*2/3);
+            
+            // Head
+            ctx.fillStyle = '#ffdbac';
+            ctx.fillRect(x - size/4, y - size*2/3, size/2, size/2);
+            
+            // Arms
+            ctx.fillStyle = color;
+            ctx.fillRect(x - size*2/3, y - size/6, size/4, size/2);
+            ctx.fillRect(x + size*2/5, y - size/6, size/4, size/2);
+            
+            // Legs
+            ctx.fillRect(x - size/6, y + size/3, size/6, size/2);
+            ctx.fillRect(x, y + size/3, size/6, size/2);
+            
+            // Weapon
+            ctx.font = `${size/2}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.fillText(weapon, x + size/2, y - size/4);
+        }
+
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw player
+            const charData = characterData[gameState.player.class];
+            if (charData) {
+                drawRobloxCharacter(
+                    gameState.player.x,
+                    gameState.player.y,
+                    charData.color,
+                    charData.weapon
+                );
+            }
+            
+            // Draw enemies
+            gameState.enemies.forEach(enemy => {
+                ctx.font = '30px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(enemy.sprite, enemy.x, enemy.y);
+                
+                const barWidth = 40;
+                const barHeight = 4;
+                const healthPercent = enemy.health / enemy.maxHealth;
+                
+                ctx.fillStyle = '#ff4444';
+                ctx.fillRect(enemy.x - barWidth/2, enemy.y - 25, barWidth * healthPercent, barHeight);
+                ctx.strokeStyle = '#ffffff';
+                ctx.strokeRect(enemy.x - barWidth/2, enemy.y - 25, barWidth, barHeight);
+            });
+            
+            // Draw boss
+            if (gameState.boss) {
+                ctx.font = '60px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(gameState.boss.sprite, gameState.boss.x, gameState.boss.y);
+            }
+        }
+
+        // Game Loop
+        function gameLoop() {
+            if (!gameState.gameStarted) return;
+            
+            updateEnemies();
+            updateBoss();
+            
+            if (gameState.player.mana < gameState.player.maxMana) {
+                gameState.player.mana = Math.min(gameState.player.maxMana, gameState.player.mana + 0.2);
+            }
+            
+            if (gameState.player.specialCooldown > 0) {
+                gameState.player.specialCooldown--;
+            }
+            
+            render();
+            updateUI();
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        function gameOver() {
+            alert(`Game Over! You reached Level ${gameState.player.level}!`);
+            location.reload();
+        }
+
+        function adjustColor(color, amount) {
+            return '#' + color.replace(/^#/, '').replace(/../g, color => ('0'+Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)).substr(-2));
+        }
+
+        // Keyboard Controls
+        document.addEventListener('keydown', (e) => {
+            if (!gameState.gameStarted) return;
+            
+            switch(e.key) {
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    movePlayer('up');
+                    break;
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    movePlayer('down');
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    movePlayer('left');
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    movePlayer('right');
+                    break;
+                case ' ':
+                    playerAttack();
+                    e.preventDefault();
+                    break;
+                case 'q':
+                case 'Q':
+                    useSpecial();
+                    break;
+            }
+        });
+
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes floatUp {
+                0% { opacity: 1; transform: translateY(0); }
+                100% { opacity: 0; transform: translateY(-50px); }
+            }
+            @keyframes particle {
+                0% { opacity: 1; transform: scale(1); }
+                100% { opacity: 0; transform: scale(0) translateY(-30px); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize
+        updateUI();
+    </script>
+</body>
+</html>

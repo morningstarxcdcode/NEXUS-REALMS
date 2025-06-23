@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Realms - Epic Adventure Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+            color: white;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        #hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            pointer-events: auto;
+        }
+
+        #stats {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        #menu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            pointer-events: auto;
+        }
+
+        #menu h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(255, 107, 107, 0.5);
+        }
+
+        .menu-button {
+            display: block;
+            width: 200px;
+            margin: 15px auto;
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .menu-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(45deg, #764ba2, #667eea);
+        }
+
+        #loadingScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .currency {
+            display: inline-block;
+            margin-right: 15px;
+            padding: 5px 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            font-weight: bold;
+        }
+
+        .karma-bar {
+            width: 200px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .karma-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+            transition: width 0.3s ease;
+        }
+
+        #notifications {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            max-width: 300px;
+        }
+
+        .notification {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            border-left: 4px solid #4ecdc4;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <!-- Loading Screen -->
+        <div id="loadingScreen">
+            <div class="loading-spinner"></div>
+            <h2>Loading Nexus Realms...</h2>
+            <p>Preparing your epic adventure...</p>
+        </div>
+
+        <!-- Main Menu -->
+        <div id="menu">
+            <h1>🌟 Nexus Realms</h1>
+            <p style="margin-bottom: 30px; font-size: 18px; opacity: 0.8;">
+                Epic Adventure • Multiple Endings • Cutting-Edge Graphics
+            </p>
+            
+            <button class="menu-button" onclick="startGame('normal')">⚔️ Start Adventure</button>
+            <button class="menu-button" onclick="showDifficultyMenu()">🎯 Select Difficulty</button>
+            <button class="menu-button" onclick="showCharacterCreation()">👤 Create Character</button>
+            <button class="menu-button" onclick="showSettings()">⚙️ Settings</button>
+            <button class="menu-button" onclick="showCredits()">📜 Credits</button>
+        </div>
+
+        <!-- Game UI -->
+        <div id="ui" class="hidden">
+            <!-- HUD -->
+            <div id="hud">
+                <div style="margin-bottom: 15px;">
+                    <span class="currency">🪙 <span id="goldAmount">1000</span></span>
+                    <span class="currency">✨ <span id="essenceAmount">0</span></span>
+                    <span class="currency">⭐ <span id="reputationAmount">50</span></span>
+                </div>
+                
+                <div>
+                    <strong>Karma:</strong>
+                    <div class="karma-bar">
+                        <div class="karma-fill" id="karmaFill" style="width: 50%;"></div>
+                    </div>
+                    <span id="karmaValue">0</span>
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <strong>Level:</strong> <span id="playerLevel">1</span><br>
+                    <strong>Class:</strong> <span id="playerClass">Warrior</span><br>
+                    <strong>Health:</strong> <span id="playerHealth">100/100</span>
+                </div>
+            </div>
+
+            <!-- Performance Stats -->
+            <div id="stats">
+                <div><strong>Performance Stats</strong></div>
+                <div>FPS: <span id="fpsCounter">60</span></div>
+                <div>Frame Time: <span id="frameTime">16.7ms</span></div>
+                <div>Draw Calls: <span id="drawCalls">0</span></div>
+                <div>Triangles: <span id="triangles">0</span></div>
+            </div>
+
+            <!-- Notifications -->
+            <div id="notifications"></div>
+        </div>
+    </div>
+
+    <!-- Game Scripts -->
+    <script type="module">
+        import NexusRealms from './src/main.js';
+
+        let game = null;
+        let gameStarted = false;
+
+        // UI Management
+        function showLoadingScreen() {
+            document.getElementById('loadingScreen').classList.remove('hidden');
+            document.getElementById('menu').classList.add('hidden');
+            document.getElementById('ui').classList.add('hidden');
+        }
+
+        function hideLoadingScreen() {
+            document.getElementById('loadingScreen').classList.add('hidden');
+        }
+
+        function showMenu() {
+            document.getElementById('menu').classList.remove('hidden');
+            document.getElementById('ui').classList.add('hidden');
+        }
+
+        function showGameUI() {
+            document.getElementById('menu').classList.add('hidden');
+            document.getElementById('ui').classList.remove('hidden');
+        }
+
+        // Game Functions
+        window.startGame = async function(difficulty = 'normal') {
+            if (gameStarted) return;
+            
+            showLoadingScreen();
+            
+            try {
+                game = new NexusRealms();
+                await game.initialize();
+                
+                gameStarted = true;
+                hideLoadingScreen();
+                showGameUI();
+                
+                // Start UI updates
+                startUIUpdates();
+                
+                showNotification('🎮 Welcome to Nexus Realms!', 'Your epic adventure begins now...');
+                
+            } catch (error) {
+                console.error('Failed to start game:', error);
+                showNotification('❌ Error', 'Failed to start the game. Please refresh and try again.');
+                hideLoadingScreen();
+                showMenu();
+            }
+        };
+
+        window.showDifficultyMenu = function() {
+            const menu = document.getElementById('menu');
+            menu.innerHTML = `
+                <h1>🎯 Select Difficulty</h1>
+                <p style="margin-bottom: 30px;">Choose your challenge level</p>
+                
+                <button class="menu-button" onclick="startGame('normal')">
+                    ⚔️ Normal<br>
+                    <small style="opacity: 0.7;">Standard experience</small>
+                </button>
+                <button class="menu-button" onclick="startGame('hard')">
+                    🔥 Hard<br>
+                    <small style="opacity: 0.7;">Increased challenge</small>
+                </button>
+                <button class="menu-button" onclick="startGame('nightmare')">
+                    💀 Nightmare<br>
+                    <small style="opacity: 0.7;">Permadeath elements</small>
+                </button>
+                <button class="menu-button" onclick="startGame('hell')">
+                    👹 Hell Mode<br>
+                    <small style="opacity: 0.7;">Ultimate challenge</small>
+                </button>
+                <button class="menu-button" onclick="location.reload()">
+                    ← Back to Main Menu
+                </button>
+            `;
+        };
+
+        window.showCharacterCreation = function() {
+            const menu = document.getElementById('menu');
+            menu.innerHTML = `
+                <h1>👤 Create Character</h1>
+                <p style="margin-bottom: 30px;">Choose your class and customize your hero</p>
+                
+                <button class="menu-button" onclick="selectClass('warrior')">
+                    ⚔️ Warrior<br>
+                    <small style="opacity: 0.7;">Strength and combat mastery</small>
+                </button>
+                <button class="menu-button" onclick="selectClass('mage')">
+                    🔮 Mage<br>
+                    <small style="opacity: 0.7;">Magic and elemental power</small>
+                </button>
+                <button class="menu-button" onclick="selectClass('rogue')">
+                    🗡️ Rogue<br>
+                    <small style="opacity: 0.7;">Stealth and precision</small>
+                </button>
+                <button class="menu-button" onclick="selectClass('hybrid')">
+                    ⚡ Hybrid<br>
+                    <small style="opacity: 0.7;">Balanced abilities</small>
+                </button>
+                <button class="menu-button" onclick="location.reload()">
+                    ← Back to Main Menu
+                </button>
+            `;
+        };
+
+        window.selectClass = function(className) {
+            localStorage.setItem('selectedClass', className);
+            showNotification('✅ Class Selected', `You chose ${className.charAt(0).toUpperCase() + className.slice(1)}!`);
+            startGame('normal');
+        };
+
+        window.showSettings = function() {
+            const menu = document.getElementById('menu');
+            menu.innerHTML = `
+                <h1>⚙️ Settings</h1>
+                <p style="margin-bottom: 30px;">Customize your experience</p>
+                
+                <button class="menu-button" onclick="toggleQuality()">
+                    🎨 Graphics Quality: High
+                </button>
+                <button class="menu-button" onclick="toggleAudio()">
+                    🔊 Audio: Enabled
+                </button>
+                <button class="menu-button" onclick="toggleFullscreen()">
+                    📺 Fullscreen Mode
+                </button>
+                <button class="menu-button" onclick="resetProgress()">
+                    🔄 Reset Progress
+                </button>
+                <button class="menu-button" onclick="location.reload()">
+                    ← Back to Main Menu
+                </button>
+            `;
+        };
+
+        window.showCredits = function() {
+            const menu = document.getElementById('menu');
+            menu.innerHTML = `
+                <h1>📜 Credits</h1>
+                <div style="text-align: left; max-width: 400px; margin: 0 auto;">
+                    <h3>🎮 Game Development</h3>
+                    <p>• Advanced Game Engine with WebGL</p>
+                    <p>• Multiple Ending System</p>
+                    <p>• Dynamic Economy & Trading</p>
+                    <p>• AI-Driven NPCs & Companions</p>
+                    
+                    <h3 style="margin-top: 20px;">🛠️ Technology Stack</h3>
+                    <p>• Three.js for 3D Graphics</p>
+                    <p>• WebGL for Performance</p>
+                    <p>• Advanced Shader Programming</p>
+                    <p>• Cross-Platform Compatibility</p>
+                    
+                    <h3 style="margin-top: 20px;">✨ Special Features</h3>
+                    <p>• Ray Tracing & Advanced Lighting</p>
+                    <p>• Procedural Content Generation</p>
+                    <p>• Machine Learning Integration</p>
+                    <p>• Optimized for Hackathons</p>
+                </div>
+                <button class="menu-button" onclick="location.reload()" style="margin-top: 30px;">
+                    ← Back to Main Menu
+                </button>
+            `;
+        };
+
+        // UI Update Functions
+        function startUIUpdates() {
+            setInterval(() => {
+                if (game && gameStarted) {
+                    updateGameStats();
+                    updatePerformanceStats();
+                }
+            }, 100); // Update every 100ms
+        }
+
+        function updateGameStats() {
+            // Update currency displays
+            if (game.economySystem) {
+                const currencies = game.economySystem.currencies;
+                document.getElementById('goldAmount').textContent = currencies.gold.value;
+                document.getElementById('essenceAmount').textContent = currencies.essence.value;
+                document.getElementById('reputationAmount').textContent = currencies.reputation.value;
+            }
+
+            // Update karma
+            if (game.storyEngine) {
+                const karma = game.storyEngine.karma;
+                const karmaPercentage = Math.max(0, Math.min(100, (karma + 100) / 2));
+                document.getElementById('karmaFill').style.width = karmaPercentage + '%';
+                document.getElementById('karmaValue').textContent = karma;
+            }
+        }
+
+        function updatePerformanceStats() {
+            if (game.engine) {
+                const stats = game.engine.getStats();
+                document.getElementById('fpsCounter').textContent = stats.fps;
+                document.getElementById('frameTime').textContent = stats.frameTime.toFixed(1) + 'ms';
+                document.getElementById('drawCalls').textContent = stats.drawCalls;
+                document.getElementById('triangles').textContent = stats.triangles.toLocaleString();
+            }
+        }
+
+        // Notification System
+        function showNotification(title, message, duration = 5000) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.innerHTML = `
+                <strong>${title}</strong><br>
+                ${message}
+            `;
+            
+            document.getElementById('notifications').appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, duration);
+        }
+
+        // Utility Functions
+        window.toggleQuality = function() {
+            showNotification('🎨 Graphics', 'Quality settings updated!');
+        };
+
+        window.toggleAudio = function() {
+            showNotification('🔊 Audio', 'Audio settings updated!');
+        };
+
+        window.toggleFullscreen = function() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        };
+
+        window.resetProgress = function() {
+            if (confirm('Are you sure you want to reset all progress?')) {
+                localStorage.clear();
+                location.reload();
+            }
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            hideLoadingScreen();
+            showMenu();
+        });
+
+        // Handle window events
+        window.addEventListener('beforeunload', () => {
+            if (game) {
+                game.engine.dispose();
+            }
+        });
+
+        // Expose for debugging
+        window.game = game;
+    </script>
+</body>
+</html>
