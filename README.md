@@ -231,7 +231,7 @@ git push origin feature/amazing-feature
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the (LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
@@ -241,15 +241,18 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Cannon.js** - Physics engine
 - **WebGL** - Graphics API
 
-## 📞 Support
-
-- **Discord**: [Join our community](https://discord.gg/nexus-realms)
-- **Issues**: [GitHub Issues](https://github.com/nexus-realms/game/issues)
-- **Email**: support@nexus-realms.com
-- **Documentation**: [Wiki](https://github.com/nexus-realms/game/wiki)
-
 ---
 
 **Made with ❤️ for the gaming community**
 
 *Nexus Realms - Where every choice shapes your destiny*
+
+<img width="775" alt="Screenshot 2025-06-23 at 8 40 04 PM" src="https://github.com/user-attachments/assets/ec5ff4f1-e1e4-4092-a965-b8115475cd6d" />
+
+<img width="1619" alt="Screenshot 2025-06-23 at 8 40 17 PM" src="https://github.com/user-attachments/assets/d01cb187-0f2b-40bb-821a-f43647f2421a" />
+
+<img width="1634" alt="Screenshot 2025-06-23 at 8 40 47 PM" src="https://github.com/user-attachments/assets/49512931-fa1c-4547-a632-9c045a55e84d" />
+
+<img width="1627" alt="Screenshot 2025-06-23 at 8 41 33 PM" src="https://github.com/user-attachments/assets/af3294df-1149-476d-b3e7-38e041d97898" />
+
+
