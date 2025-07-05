@@ -26,7 +26,7 @@
   "author": "Nexus Realms Team",
   "license": "MIT",
   "dependencies": {
-    "three": "^0.158.0",
+    "three": "^0.178.0",
     "cannon-es": "^0.20.0",
     "howler": "^2.2.3",
     "gsap": "^3.12.2",
