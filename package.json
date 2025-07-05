@@ -39,7 +39,7 @@
     "@babel/core": "^7.23.3",
     "@babel/preset-env": "^7.23.3",
     "html-webpack-plugin": "^5.5.3",
-    "css-loader": "^6.8.1",
+    "css-loader": "^7.0.0",
     "style-loader": "^3.3.3",
     "file-loader": "^6.2.0",
     "eslint": "^8.54.0",
